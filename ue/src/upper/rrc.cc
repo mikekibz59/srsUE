@@ -76,6 +76,8 @@ void rrc::init(phy_interface_rrc     *phy_,
   rrc_log = rrc_log_;
   mac_timers = mac_timers_;
 
+  ue_category = SRSUE_UE_CATEGORY; 
+  
   transaction_id = 0;
   
   // Register logging handler with liblte_rrc
@@ -94,6 +96,16 @@ rrc_state_t rrc::get_state()
 {
   return state;
 }
+
+void rrc::set_ue_category(int category)
+{
+  if(category >= 1 && category <= 5) {
+    ue_category = category; 
+  } else {
+    rrc_log->error("Unsupported UE category %d\n", category);
+  }
+}
+
 
 /*******************************************************************************
   NAS interface
@@ -635,7 +647,7 @@ void rrc::send_rrc_con_reconfig_complete(uint32_t lcid, byte_buffer_t *pdu)
 
 void rrc::enable_capabilities()
 {
-  bool enable_ul_64 = SRSUE_UE_CATEGORY>=5 && sib2.rr_config_common_sib.pusch_cnfg.enable_64_qam;
+  bool enable_ul_64 = ue_category>=5 && sib2.rr_config_common_sib.pusch_cnfg.enable_64_qam;
   rrc_log->info("%s 64QAM PUSCH\n", enable_ul_64?"Enabling":"Disabling");
   phy->set_config_64qam_en(enable_ul_64);  
 }
@@ -654,7 +666,7 @@ void rrc::send_rrc_ue_cap_info(uint32_t lcid, byte_buffer_t *pdu)
 
   LIBLTE_RRC_UE_EUTRA_CAPABILITY_STRUCT *cap = &info->ue_capability_rat[0].eutra_capability;
   cap->access_stratum_release = LIBLTE_RRC_ACCESS_STRATUM_RELEASE_REL8;
-  cap->ue_category = SRSUE_UE_CATEGORY;
+  cap->ue_category = ue_category;
 
   cap->pdcp_params.max_rohc_ctxts_present = false;
   cap->pdcp_params.supported_rohc_profiles[0] = false;

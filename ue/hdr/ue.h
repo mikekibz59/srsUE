@@ -112,6 +112,7 @@ typedef struct {
   phy_args_t phy; 
   float      metrics_period_secs;
   bool pregenerate_signals;
+  int ue_cateogry; 
 }expert_args_t;
 
 typedef struct {

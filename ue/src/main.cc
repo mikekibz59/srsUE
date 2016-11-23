@@ -112,6 +112,10 @@ void parse_args(all_args_t *args, int argc, char* argv[]) {
         
         /* Expert section */
         
+        ("expert.ue_category",
+            bpo::value<int>(&args->expert.ue_cateogry)->default_value(4), 
+            "UE Category (1 to 5)")
+
         ("expert.metrics_period_secs",
             bpo::value<float>(&args->expert.metrics_period_secs)->default_value(1.0), 
             "Periodicity for metrics in seconds")

@@ -81,6 +81,7 @@ public:
   void stop();
 
   rrc_state_t get_state();
+  void set_ue_category(int category); 
 
   // Timeout callback interface
   void timer_expired(uint32_t timeout_id);
@@ -131,6 +132,7 @@ private:
   uint32_t n310_cnt, N310; 
   uint32_t n311_cnt, N311; 
   uint32_t t301, t310, t311;
+  int ue_category;
     
   
   // NAS interface

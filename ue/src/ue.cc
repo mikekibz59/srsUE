@@ -194,6 +194,9 @@ bool ue::init(all_args_t *args_)
   rlc.init(&pdcp, &rrc, this, &rlc_log, &mac);
   pdcp.init(&rlc, &rrc, &gw, &pdcp_log);
   rrc.init(&phy, &mac, &rlc, &pdcp, &nas, &usim, &mac, &rrc_log);
+  
+  rrc.set_ue_category(args->expert.ue_cateogry);
+  
   nas.init(&usim, &rrc, &gw, &nas_log);
   gw.init(&pdcp, &rrc, this, &gw_log);
   usim.init(&args->usim, &usim_log);

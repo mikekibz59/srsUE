@@ -93,6 +93,8 @@ enable = false
 #####################################################################
 # Expert configuration options
 #
+# ue_category:          Sets UE category (range 1-5). Default: 4 
+#
 # prach_gain:           PRACH gain (dB). If defined, forces a gain for the tranmsission of PRACH only., 
 #                       Default is to use tx_gain in [rf] section. 
 # cqi_max:              Upper bound on the maximum CQI to be reported. Default 15. 
@@ -127,6 +129,7 @@ enable = false
 #
 #####################################################################
 [expert]
+#ue_category         = 4
 #prach_gain          = 30
 #cqi_max             = 15
 #cqi_offset          = 0
