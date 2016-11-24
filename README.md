@@ -10,7 +10,7 @@ srsUE is released under the AGPLv3 license and uses software from the OpenLTE pr
 Compatibility
 -------------
 
-srsUE has been fully tested and validated with the following newtork equipment: 
+srsUE has been fully tested and validated with the following network equipment: 
  * Amarisoft LTE100 eNodeB and EPC
  * Nokia FlexiRadio family FSMF system module with 1800MHz FHED radio module and TravelHawk EPC simulator
  * Huawei DBS3900 
