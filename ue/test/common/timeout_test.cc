@@ -31,7 +31,7 @@
 #include <boost/thread/condition.hpp>
 #include "common/timeout.h"
 
-using namespace srsue;
+using namespace srslte;
 
 class callback
     : public timeout_callback

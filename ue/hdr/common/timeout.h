@@ -39,7 +39,7 @@
 #include <unistd.h>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
-namespace srsue {
+namespace srslte {
   
 class timeout_callback
 {

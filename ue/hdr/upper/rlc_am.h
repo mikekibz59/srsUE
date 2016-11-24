@@ -167,9 +167,9 @@ private:
    * Timers
    * Ref: 3GPP TS 36.322 v10.0.0 Section 7
    ***************************************************************************/
-  timeout poll_retx_timeout;
-  timeout reordering_timeout;
-  timeout status_prohibit_timeout;
+  srslte::timeout poll_retx_timeout;
+  srslte::timeout reordering_timeout;
+  srslte::timeout status_prohibit_timeout;
 
   static const int reordering_timeout_id = 1;
 
