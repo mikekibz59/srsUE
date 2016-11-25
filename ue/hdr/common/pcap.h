@@ -81,7 +81,7 @@ typedef struct pcaprec_hdr_s {
 /* 2 bytes, network order */
 
 #define MAC_LTE_SUBFRAME_TAG        0x04
-/* 2 bytes, network order, SFN is stored in 12 MSB and SF in 4 LSB */
+/* 2 bytes, network order */
 
 #define MAC_LTE_PREDFINED_DATA_TAG  0x05
 /* 1 byte */
@@ -91,9 +91,6 @@ typedef struct pcaprec_hdr_s {
 
 #define MAC_LTE_CRC_STATUS_TAG      0x07
 /* 1 byte */
-
-#define MAC_LTE_NB_MODE_TAG         0x0F
-/* 1 byte containing mac_lte_nb_mode enum value */
 
 /* MAC PDU. Following this tag comes the actual MAC PDU (there is no length, the PDU
    continues until the end of the frame) */
@@ -113,7 +110,6 @@ typedef struct MAC_Context_Info_t {
     unsigned short sysFrameNumber;
     unsigned short subFrameNumber;
 
-    unsigned char  nbiotMode;
 } MAC_Context_Info_t;
 
 
@@ -182,19 +178,13 @@ inline int MAC_LTE_PCAP_WritePDU(FILE *fd, MAC_Context_Info_t *context,
 
     /* Subframe number */
     context_header[offset++] = MAC_LTE_SUBFRAME_TAG;
-
-    /* 2 bytes, network order, SFN is stored in 12 MSB and SF in 4 LSB */
-    tmp16 = htons((context->sysFrameNumber << 4) | (context->subFrameNumber & 0xF));
+    tmp16 = htons(context->subFrameNumber);
     memcpy(context_header+offset, &tmp16, 2);
     offset += 2;
 
     /* CRC Status */
     context_header[offset++] = MAC_LTE_CRC_STATUS_TAG;
     context_header[offset++] = context->crcStatusOK;
-
-    /* NB-IoT mode tag */
-    context_header[offset++] = MAC_LTE_NB_MODE_TAG;
-    context_header[offset++] = context->nbiotMode;
 
     /* Data tag immediately preceding PDU */
     context_header[offset++] = MAC_LTE_PAYLOAD_TAG;
