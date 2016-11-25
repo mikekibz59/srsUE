@@ -404,9 +404,10 @@ void nas::parse_identity_request(uint32_t lcid, byte_buffer_t *pdu)
 
 void nas::parse_security_mode_command(uint32_t lcid, byte_buffer_t *pdu)
 {
-  LIBLTE_MME_SECURITY_MODE_COMMAND_MSG_STRUCT  sec_mode_cmd;
-  LIBLTE_MME_SECURITY_MODE_COMPLETE_MSG_STRUCT sec_mode_comp;
-  LIBLTE_MME_SECURITY_MODE_REJECT_MSG_STRUCT   sec_mode_rej;
+  bool                                          success;
+  LIBLTE_MME_SECURITY_MODE_COMMAND_MSG_STRUCT   sec_mode_cmd;
+  LIBLTE_MME_SECURITY_MODE_COMPLETE_MSG_STRUCT  sec_mode_comp;
+  LIBLTE_MME_SECURITY_MODE_REJECT_MSG_STRUCT    sec_mode_rej;
 
   nas_log->info("Received Security Mode Command\n");
   liblte_mme_unpack_security_mode_command_msg((LIBLTE_BYTE_MSG_STRUCT*)pdu, &sec_mode_cmd);
@@ -421,27 +422,46 @@ void nas::parse_security_mode_command(uint32_t lcid, byte_buffer_t *pdu)
   nas_log->debug("Security details: ksi=%d, eea=%s, eia=%s\n",
                  ksi, ciphering_algorithm_id_text[cipher_algo], integrity_algorithm_id_text[integ_algo]);
 
-  // Reuse pdu for response
-  pdu->reset();
 
   if(CIPHERING_ALGORITHM_ID_EEA0 != cipher_algo ||
      (INTEGRITY_ALGORITHM_ID_128_EIA2 != integ_algo &&
       INTEGRITY_ALGORITHM_ID_128_EIA1 != integ_algo) ||
      sec_mode_cmd.nas_ksi.tsc_flag != LIBLTE_MME_TYPE_OF_SECURITY_CONTEXT_FLAG_NATIVE)
   {
-    // Send security mode reject
     sec_mode_rej.emm_cause = LIBLTE_MME_EMM_CAUSE_UE_SECURITY_CAPABILITIES_MISMATCH;
-    liblte_mme_pack_security_mode_reject_msg(&sec_mode_rej, (LIBLTE_BYTE_MSG_STRUCT*)pdu);
     nas_log->warning("Sending Security Mode Reject due to security capabilities mismatch\n");
+    success = false;
   }
   else
   {
-    // Send security mode complete
-
     // Generate NAS encryption key and integrity protection key
     usim->generate_nas_keys(k_nas_enc, k_nas_int, cipher_algo, integ_algo);
     nas_log->debug_hex(k_nas_enc, 32, "NAS encryption key - k_nas_enc");
     nas_log->debug_hex(k_nas_int, 32, "NAS integrity key - k_nas_int");
+
+    // Check incoming MAC
+    uint8_t *inMAC = &pdu->msg[1];
+    uint8_t genMAC[4];
+    integrity_generate(&k_nas_int[16],
+                       count_dl,
+                       lcid-1,
+                       SECURITY_DIRECTION_DOWNLINK,
+                       &pdu->msg[5],
+                       pdu->N_bytes-5,
+                       genMAC);
+
+    nas_log->info_hex(inMAC, 4, "Incoming PDU MAC:");
+    nas_log->info_hex(genMAC, 4, "Generated PDU MAC:");
+
+    bool match=true;
+    for(int i=0;i<4;i++) {
+      if(inMAC[i] != genMAC[i]) {
+        match = false;
+      }
+    }
+    if(!match) {
+      nas_log->warning("Integrity check failure\n");
+    }
 
     if(sec_mode_cmd.imeisv_req_present && LIBLTE_MME_IMEISV_REQUESTED == sec_mode_cmd.imeisv_req)
     {
@@ -456,6 +476,8 @@ void nas::parse_security_mode_command(uint32_t lcid, byte_buffer_t *pdu)
         sec_mode_comp.imeisv_present = false;
     }
 
+    // Reuse pdu for response
+    pdu->reset();
     liblte_mme_pack_security_mode_complete_msg(&sec_mode_comp,
                                                LIBLTE_MME_SECURITY_HDR_TYPE_INTEGRITY_AND_CIPHERED,
                                                count_ul,
@@ -470,6 +492,13 @@ void nas::parse_security_mode_command(uint32_t lcid, byte_buffer_t *pdu)
     nas_log->info("Sending Security Mode Complete nas_count_ul=%d, RB=%s\n",
                  count_ul,
                  rb_id_text[lcid]);
+    success = true;
+  }
+
+  if(!success) {
+    // Reuse pdu for response
+    pdu->reset();
+    liblte_mme_pack_security_mode_reject_msg(&sec_mode_rej, (LIBLTE_BYTE_MSG_STRUCT*)pdu);
   }
 
   rrc->write_sdu(lcid, pdu);
