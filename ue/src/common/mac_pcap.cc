@@ -97,4 +97,3 @@ void mac_pcap::write_dl_sirnti(uint8_t* pdu, uint32_t pdu_len_bytes, bool crc_ok
 
   
 }
-
