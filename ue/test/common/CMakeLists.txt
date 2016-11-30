@@ -33,3 +33,5 @@ target_link_libraries(log_filter_test srsue_common ${CMAKE_THREAD_LIBS_INIT} ${B
 
 add_executable(timeout_test timeout_test.cc)
 target_link_libraries(timeout_test srsue_common ${CMAKE_THREAD_LIBS_INIT} ${Boost_LIBRARIES})
+
+add_executable(bcd_helpers_test bcd_helpers_test.cc)
