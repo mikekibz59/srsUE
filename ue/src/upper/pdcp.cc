@@ -45,7 +45,11 @@ void pdcp::init(rlc_interface_pdcp *rlc_, rrc_interface_pdcp *rrc_, gw_interface
 }
 
 void pdcp::stop()
-{}
+{
+  for(uint32_t i=0;i<SRSUE_N_RADIO_BEARERS;i++) {
+    pdcp_array[i].stop();
+  }
+}
 
 void pdcp::reset()
 {

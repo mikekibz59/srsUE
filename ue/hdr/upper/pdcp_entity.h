@@ -32,6 +32,8 @@
 #include "common/common.h"
 #include "common/interfaces.h"
 #include "common/security.h"
+#include "common/msg_queue.h"
+#include "common/threads.h"
 
 using srslte::byte_buffer_t; 
 
@@ -61,6 +63,7 @@ static const char pdcp_d_c_text[PDCP_D_C_N_ITEMS][20] = {"Control PDU",
  * Common interface for all PDCP entities
  ***************************************************************************/
 class pdcp_entity
+    :public thread
 {
 public:
   pdcp_entity();
@@ -70,6 +73,7 @@ public:
             srslte::log                   *log_,
             uint32_t                       lcid_,
             LIBLTE_RRC_PDCP_CONFIG_STRUCT *cnfg = NULL);
+  void stop();
   void reset();
 
   bool is_active();
@@ -90,6 +94,10 @@ private:
   rlc_interface_pdcp *rlc;
   rrc_interface_pdcp *rrc;
   gw_interface_pdcp  *gw;
+
+  static const int    PDCP_THREAD_PRIO = 7;
+  srslte::msg_queue   rx_pdu_queue;
+  bool                running;
 
   bool                active;
   uint32_t            lcid;
@@ -114,7 +122,7 @@ private:
                           uint8_t  *msg,
                           uint32_t  msg_len,
                           uint8_t  *mac);
-
+  void run_thread();
 };
 
 /****************************************************************************
