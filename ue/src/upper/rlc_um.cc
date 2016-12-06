@@ -39,6 +39,8 @@ rlc_um::rlc_um() : tx_sdu_queue(16)
   rx_sdu = NULL;
   pool = buffer_pool::get_instance();
 
+  pthread_mutex_init(&mutex, NULL);
+  
   vt_us    = 0;
   vr_ur    = 0;
   vr_ux    = 0;
@@ -198,8 +200,9 @@ int rlc_um::read_pdu(uint8_t *payload, uint32_t nof_bytes)
 
 void rlc_um::write_pdu(uint8_t *payload, uint32_t nof_bytes)
 {
-  boost::lock_guard<boost::mutex> lock(mutex);
+  pthread_mutex_lock(&mutex);
   handle_data_pdu(payload, nof_bytes);
+  pthread_mutex_unlock(&mutex);
 }
 
 /****************************************************************************
@@ -210,7 +213,7 @@ void rlc_um::timer_expired(uint32_t timeout_id)
 {
   if(reordering_timeout_id == timeout_id)
   {
-    boost::lock_guard<boost::mutex> lock(mutex);
+    pthread_mutex_lock(&mutex);
 
     // 36.322 v10 Section 5.1.2.2.4
     log->info("%s reordering timeout expiry - updating vr_ur and reassembling\n",
@@ -235,6 +238,7 @@ void rlc_um::timer_expired(uint32_t timeout_id)
     }
 
     debug_state();
+    pthread_mutex_unlock(&mutex);
   }
 }
 

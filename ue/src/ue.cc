@@ -26,7 +26,6 @@
 
 
 #include <boost/algorithm/string.hpp>
-#include <boost/thread/mutex.hpp>
 #include "ue.h"
 #include "srslte_version_check.h"
 #include "srslte/srslte.h"

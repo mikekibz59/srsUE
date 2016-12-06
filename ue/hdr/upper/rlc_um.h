@@ -33,7 +33,7 @@
 #include "common/interfaces.h"
 #include "common/msg_queue.h"
 #include "upper/rlc_common.h"
-#include <boost/thread/mutex.hpp>
+#include <pthread.h>
 #include <map>
 #include <queue>
 
@@ -101,7 +101,7 @@ private:
   uint32_t            vr_ur_in_rx_sdu;
 
   // Mutexes
-  boost::mutex        mutex;
+  pthread_mutex_t        mutex;
 
   /****************************************************************************
    * Configurable parameters

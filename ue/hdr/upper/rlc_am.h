@@ -34,7 +34,6 @@
 #include "common/msg_queue.h"
 #include "common/timeout.h"
 #include "upper/rlc_common.h"
-#include <boost/thread/mutex.hpp>
 #include <map>
 #include <deque>
 #include <list>
@@ -120,7 +119,7 @@ private:
   byte_buffer_t *rx_sdu;
 
   // Mutexes
-  boost::mutex        mutex;
+  pthread_mutex_t     mutex;
 
   bool                poll_received;
   bool                do_status;

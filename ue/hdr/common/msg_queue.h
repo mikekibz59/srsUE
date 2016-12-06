@@ -34,8 +34,7 @@
 #define MSG_QUEUE_H
 
 #include "common/common.h"
-#include <boost/thread/mutex.hpp>
-#include <boost/thread/condition.hpp>
+#include <pthread.h>
 
 namespace srslte {
 
@@ -50,6 +49,9 @@ public:
     ,capacity(capacity_)
   {
     buf = new byte_buffer_t*[capacity];
+    pthread_mutex_init(&mutex, NULL);
+    pthread_cond_init(&not_empty, NULL);
+    pthread_cond_init(&not_full, NULL);
   }
 
   ~msg_queue()
@@ -59,70 +61,83 @@ public:
 
   void write(byte_buffer_t *msg)
   {
-    boost::mutex::scoped_lock lock(mutex);
-    while(is_full()) not_full.wait(lock);
+    pthread_mutex_lock(&mutex);
+    while(is_full()) {
+      pthread_cond_wait(&not_full, &mutex);
+    }
     buf[head] = msg;
     head = (head+1)%capacity;
     unread++;
     unread_bytes += msg->N_bytes;
-    lock.unlock();
-    not_empty.notify_one();
+    
+    pthread_cond_signal(&not_empty);
+    pthread_mutex_unlock(&mutex);
   }
 
   void read(byte_buffer_t **msg)
   {
-    boost::mutex::scoped_lock lock(mutex);
-    while(is_empty()) not_empty.wait(lock);
+    pthread_mutex_lock(&mutex);
+    while(is_empty()) {
+      pthread_cond_wait(&not_empty, &mutex);
+    }
     *msg = buf[tail];
     tail = (tail+1)%capacity;
     unread--;
     unread_bytes -= (*msg)->N_bytes;
-    lock.unlock();
-    not_full.notify_one();
+
+    pthread_cond_signal(&not_full);
+    pthread_mutex_unlock(&mutex);
   }
 
   bool try_read(byte_buffer_t **msg)
   {
-    boost::mutex::scoped_lock lock(mutex);
+    pthread_mutex_lock(&mutex);
     if(is_empty())
     {
+      pthread_mutex_unlock(&mutex);
       return false;
     }else{
       *msg = buf[tail];
       tail = (tail+1)%capacity;
       unread--;
       unread_bytes -= (*msg)->N_bytes;
-      lock.unlock();
-      not_full.notify_one();
+      pthread_cond_signal(&not_full);
+      pthread_mutex_unlock(&mutex);
       return true;
     }
   }
 
   uint32_t size()
   {
-    boost::mutex::scoped_lock lock(mutex);
-    return unread;
+    pthread_mutex_lock(&mutex);
+    uint32_t r = unread;
+    pthread_mutex_unlock(&mutex);
+    return r; 
   }
 
   uint32_t size_bytes()
   {
-    boost::mutex::scoped_lock lock(mutex);
-    return unread_bytes;
+    pthread_mutex_lock(&mutex);
+    uint32_t r = unread_bytes;
+    pthread_mutex_unlock(&mutex);
+    return r; 
   }
 
   uint32_t size_tail_bytes()
   {
-    boost::mutex::scoped_lock lock(mutex);
-    return buf[tail]->N_bytes;
+    pthread_mutex_lock(&mutex);
+    uint32_t r = buf[tail]->N_bytes;
+    pthread_mutex_unlock(&mutex);
+    return r; 
   }
 
 private:
   bool     is_empty() const { return unread == 0; }
   bool     is_full() const { return unread == capacity; }
 
-  boost::condition      not_empty;
-  boost::condition      not_full;
-  boost::mutex          mutex;
+  pthread_cond_t        not_empty;
+  pthread_cond_t        not_full;
+  pthread_mutex_t       mutex;
   byte_buffer_t **buf;
   uint32_t              capacity;
   uint32_t              unread;

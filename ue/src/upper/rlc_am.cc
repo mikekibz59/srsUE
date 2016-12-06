@@ -41,6 +41,8 @@ rlc_am::rlc_am() : tx_sdu_queue(16)
   rx_sdu = NULL;
   pool = buffer_pool::get_instance();
 
+  pthread_mutex_init(&mutex, NULL);
+  
   vt_a    = 0;
   vt_ms   = RLC_AM_WINDOW_SIZE;
   vt_s    = 0;
@@ -181,7 +183,7 @@ void rlc_am::write_sdu(byte_buffer_t *sdu)
 
 uint32_t rlc_am::get_total_buffer_state()
 {
-  boost::lock_guard<boost::mutex> lock(mutex);
+  pthread_mutex_lock(&mutex);
   uint32_t n_bytes = 0;
   uint32_t n_sdus  = 0;
 
@@ -221,12 +223,13 @@ uint32_t rlc_am::get_total_buffer_state()
     log->debug("Buffer state - tx SDUs: %d bytes\n", n_bytes);
   }
 
+  pthread_mutex_unlock(&mutex);
   return n_bytes;
 }
 
 uint32_t rlc_am::get_buffer_state()
 {
-  boost::lock_guard<boost::mutex> lock(mutex);
+  pthread_mutex_lock(&mutex);
   uint32_t n_bytes = 0;
   uint32_t n_sdus  = 0;
 
@@ -235,7 +238,7 @@ uint32_t rlc_am::get_buffer_state()
   if(do_status && !status_prohibited()) {
     n_bytes = prepare_status();
     log->debug("Buffer state - status report: %d bytes\n", n_bytes);
-    return n_bytes;
+    goto unlock_and_return;
   }
 
   // Bytes needed for retx
@@ -243,9 +246,9 @@ uint32_t rlc_am::get_buffer_state()
     rlc_amd_retx_t retx = retx_queue.front();
     log->debug("Buffer state - retx - SN: %d, Segment: %s, %d:%d\n", retx.sn, retx.is_segment ? "true" : "false", retx.so_start, retx.so_end);
     if(tx_window.end() != tx_window.find(retx.sn)) {
-        n_bytes = required_buffer_size(retx);
-        log->debug("Buffer state - retx: %d bytes\n", n_bytes);
-        return n_bytes;
+      n_bytes = required_buffer_size(retx);
+      log->debug("Buffer state - retx: %d bytes\n", n_bytes);
+      goto unlock_and_return;
     }
   }
 
@@ -268,12 +271,14 @@ uint32_t rlc_am::get_buffer_state()
     log->debug("Buffer state - tx SDUs: %d bytes\n", n_bytes);
   }
 
+unlock_and_return:
+  pthread_mutex_unlock(&mutex);
   return n_bytes;
 }
 
 int rlc_am::read_pdu(uint8_t *payload, uint32_t nof_bytes)
 {
-  boost::lock_guard<boost::mutex> lock(mutex);
+  pthread_mutex_lock(&mutex);
 
   log->debug("MAC opportunity - %d bytes\n", nof_bytes);
 
@@ -282,8 +287,12 @@ int rlc_am::read_pdu(uint8_t *payload, uint32_t nof_bytes)
     return build_status_pdu(payload, nof_bytes);
 
   // RETX if required
-  if(retx_queue.size() > 0)
+  if(retx_queue.size() > 0) {
+    pthread_mutex_unlock(&mutex);
     return build_retx_pdu(payload, nof_bytes);
+  }
+
+  pthread_mutex_unlock(&mutex);
 
   // Build a PDU from SDUs
   return build_data_pdu(payload, nof_bytes);
@@ -293,7 +302,7 @@ void rlc_am::write_pdu(uint8_t *payload, uint32_t nof_bytes)
 {
   if(nof_bytes < 1)
     return;
-  boost::lock_guard<boost::mutex> lock(mutex);
+  pthread_mutex_lock(&mutex);
 
   if(rlc_am_is_control_pdu(payload)) {
     handle_control_pdu(payload, nof_bytes);
@@ -306,6 +315,7 @@ void rlc_am::write_pdu(uint8_t *payload, uint32_t nof_bytes)
       handle_data_pdu(payload, nof_bytes, header);
     }
   }
+  pthread_mutex_unlock(&mutex);
 }
 
 /****************************************************************************
