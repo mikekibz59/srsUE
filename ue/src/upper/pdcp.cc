@@ -34,14 +34,15 @@ namespace srsue{
 pdcp::pdcp()
 {}
 
-void pdcp::init(rlc_interface_pdcp *rlc_, rrc_interface_pdcp *rrc_, gw_interface_pdcp *gw_, srslte::log *pdcp_log_)
+void pdcp::init(rlc_interface_pdcp *rlc_, rrc_interface_pdcp *rrc_, gw_interface_pdcp *gw_, srslte::log *pdcp_log_, uint8_t direction_)
 {
   rlc       = rlc_;
   rrc       = rrc_;
   gw        = gw_;
   pdcp_log  = pdcp_log_;
+  direction = direction_;
 
-  pdcp_array[0].init(rlc, rrc, gw, pdcp_log, RB_ID_SRB0); // SRB0
+  pdcp_array[0].init(rlc, rrc, gw, pdcp_log, RB_ID_SRB0, direction); // SRB0
 }
 
 void pdcp::stop()
@@ -53,7 +54,7 @@ void pdcp::reset()
     pdcp_array[i].reset();
   }
 
-  pdcp_array[0].init(rlc, rrc, gw, pdcp_log, RB_ID_SRB0); // SRB0
+  pdcp_array[0].init(rlc, rrc, gw, pdcp_log, RB_ID_SRB0, direction); // SRB0
 }
 
 /*******************************************************************************
@@ -72,7 +73,7 @@ void pdcp::add_bearer(uint32_t lcid, LIBLTE_RRC_PDCP_CONFIG_STRUCT *cnfg)
     return;
   }
   if (!pdcp_array[lcid].is_active()) {
-    pdcp_array[lcid].init(rlc, rrc, gw, pdcp_log, lcid, cnfg);
+    pdcp_array[lcid].init(rlc, rrc, gw, pdcp_log, lcid, direction, cnfg);
     pdcp_log->info("Added bearer %s\n", rb_id_text[lcid]);
   } else {
     pdcp_log->warning("Bearer %s already configured. Reconfiguration not supported\n", rb_id_text[lcid]);

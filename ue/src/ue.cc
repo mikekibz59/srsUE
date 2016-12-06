@@ -192,7 +192,7 @@ bool ue::init(all_args_t *args_)
 
   mac.init(&phy, &rlc, &rrc, &mac_log);
   rlc.init(&pdcp, &rrc, this, &rlc_log, &mac);
-  pdcp.init(&rlc, &rrc, &gw, &pdcp_log);
+  pdcp.init(&rlc, &rrc, &gw, &pdcp_log, SECURITY_DIRECTION_UPLINK);
   rrc.init(&phy, &mac, &rlc, &pdcp, &nas, &usim, &mac, &rrc_log);
   
   rrc.set_ue_category(args->expert.ue_cateogry);
