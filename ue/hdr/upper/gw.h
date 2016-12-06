@@ -74,7 +74,7 @@ private:
 
   long                ul_tput_bytes;
   long                dl_tput_bytes;
-  bpt::ptime          metrics_time;
+  struct timeval      metrics_time[3];
 
   void                run_thread();
   srslte::error_t     init_if(char *err_str);

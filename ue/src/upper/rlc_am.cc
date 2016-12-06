@@ -950,7 +950,7 @@ void rlc_am::reassemble_rx_sdus()
       rx_window[vr_r].buf->msg += len;
       rx_window[vr_r].buf->N_bytes -= len;
       log->info_hex(rx_sdu->msg, rx_sdu->N_bytes, "%s Rx SDU", rb_id_text[lcid]);
-      rx_sdu->timestamp = bpt::microsec_clock::local_time();
+      rx_sdu->set_timestamp();
       pdcp->write_pdu(lcid, rx_sdu);
       rx_sdu = pool->allocate();
       if (!rx_sdu) {
@@ -966,7 +966,7 @@ void rlc_am::reassemble_rx_sdus()
     if(rlc_am_end_aligned(rx_window[vr_r].header.fi))
     {
       log->info_hex(rx_sdu->msg, rx_sdu->N_bytes, "%s Rx SDU", rb_id_text[lcid]);
-      rx_sdu->timestamp = bpt::microsec_clock::local_time();
+      rx_sdu->set_timestamp();
       pdcp->write_pdu(lcid, rx_sdu);
       rx_sdu = pool->allocate();
     }

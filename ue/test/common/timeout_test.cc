@@ -25,10 +25,8 @@
  */
 
 
+#include <pthread.h>
 #include <stdio.h>
-#include <boost/date_time/posix_time/posix_time.hpp>
-#include <boost/thread/mutex.hpp>
-#include <boost/thread/condition.hpp>
 #include "common/timeout.h"
 
 using namespace srslte;
@@ -37,46 +35,51 @@ class callback
     : public timeout_callback
 {
 public:
-  callback(){}
+  callback() {
+    finished = false; 
+    pthread_mutex_init(&mutex, NULL);
+    pthread_cond_init(&cvar, NULL);
+  }
+  
   void timeout_expired(uint32_t timeout_id)
   {
-    boost::mutex::scoped_lock lock(mut);
-    end_time = boost::posix_time::microsec_clock::local_time();
-    finished = true;
-    cond.notify_one();
+    pthread_mutex_lock(&mutex);
+    finished = true; 
+    pthread_cond_signal(&cvar);
+    pthread_mutex_unlock(&mutex);
   }
   void wait()
   {
-    boost::mutex::scoped_lock lock(mut);
-    while(!finished) cond.wait(lock);
+    pthread_mutex_lock(&mutex);
+    while(!finished) {
+      pthread_cond_wait(&cvar, &mutex);
+    }
+    pthread_mutex_unlock(&mutex);
   }
-  boost::posix_time::ptime start_time, end_time;
+  struct timeval start_time[3];
 private:
   bool              finished;
-  boost::condition  cond;
-  boost::mutex      mut;
+  pthread_cond_t    cvar; 
+  pthread_mutex_t   mutex; 
 };
 
 int main(int argc, char **argv) {
   bool result;
-  boost::posix_time::ptime  start_time, end_time;
   uint32_t id       = 0;
   uint32_t duration_msec = 5;
 
   callback c;
   timeout t;
 
-  c.start_time = boost::posix_time::microsec_clock::local_time();
+  gettimeofday(&c.start_time[1], NULL);
   t.start(0, duration_msec, &c);
   c.wait();
 
-  boost::posix_time::time_duration diff = c.end_time - c.start_time;
-  uint32_t diff_ms = diff.total_milliseconds();
-  printf("Target duration: %dms, started: %s, ended: %s, actual duration %dms\n",
-         duration_msec,
-         std::string(boost::posix_time::to_simple_string(c.start_time),12,26).c_str(),
-         std::string(boost::posix_time::to_simple_string(c.end_time),12,26).c_str(),
-         diff_ms);
+  gettimeofday(&c.start_time[2], NULL);
+  get_time_interval(c.start_time);
+  uint32_t diff_ms = c.start_time[0].tv_usec*1000;
+  printf("Target duration: %dms, started: %ld:%ld, ended: %ld:%ld, actual duration %dms\n",
+         duration_msec, c.start_time[1].tv_sec, c.start_time[1].tv_usec, c.start_time[2].tv_sec, c.start_time[2].tv_usec, diff_ms);
 
   result = (diff_ms == duration_msec);
 

@@ -24,8 +24,10 @@
  *
  */
 
+#include <cstdlib>
+#include <iomanip>
+#include <iostream>
 
-#include <boost/date_time/posix_time/posix_time.hpp>
 #include "common/log_filter.h"
 
 namespace srslte{
@@ -52,6 +54,7 @@ void log_filter::all_log(srslte::LOG_LEVEL_ENUM level,
                          char                  *msg)
 {
   if(logger_h) {
+  /*
     std::stringstream ss;
 
     ss << now_time() << " ";
@@ -63,6 +66,7 @@ void log_filter::all_log(srslte::LOG_LEVEL_ENUM level,
 
     str_ptr s_ptr(new std::string(ss.str()));
     logger_h->log(s_ptr);
+    */
   }
 }
 
@@ -73,6 +77,7 @@ void log_filter::all_log(srslte::LOG_LEVEL_ENUM level,
                          int                    size)
 {
   if(logger_h) {
+  /*
     std::stringstream ss;
 
     ss << now_time() << " ";
@@ -85,6 +90,7 @@ void log_filter::all_log(srslte::LOG_LEVEL_ENUM level,
 
     str_ptr s_ptr(new std::string(ss.str()));
     logger_h->log(s_ptr);
+    */
   }
 }
 
@@ -95,6 +101,7 @@ void log_filter::all_log_line(srslte::LOG_LEVEL_ENUM level,
                               char                  *msg)
 {
   if(logger_h) {
+  /*
     std::stringstream ss;
 
     ss << now_time() << " ";
@@ -106,6 +113,7 @@ void log_filter::all_log_line(srslte::LOG_LEVEL_ENUM level,
 
     str_ptr s_ptr(new std::string(ss.str()));
     logger_h->log(s_ptr);
+    */
   }
 }
 
@@ -265,8 +273,10 @@ void log_filter::debug_line(std::string file, int line, std::string message, ...
 
 std::string log_filter::now_time()
 {
-  using namespace boost::posix_time;
-  return std::string(to_simple_string(microsec_clock::local_time()), 12, 12);
+  struct timeval t; 
+  gettimeofday(&t, NULL);
+  printf("---- fix me print time formated ----\n");
+  return std::string("ERR");
 }
 
 std::string log_filter::hex_string(uint8_t *hex, int size)

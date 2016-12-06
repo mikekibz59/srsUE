@@ -381,7 +381,7 @@ private:
           log_h->info_hex(pdu->msg, pdu->N_bytes, "UL PDU");
 
           // Send PDU directly to PDCP
-          pdu->timestamp = bpt::microsec_clock::local_time();
+          pdu->set_timestamp();
           rlc->write_sdu(LCID, pdu);
           
           pdu = pool->allocate();

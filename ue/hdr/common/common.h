@@ -33,7 +33,6 @@
 
 #include <stdint.h>
 #include <string.h>
-#include <boost/date_time/posix_time/posix_time.hpp>
 
 /*******************************************************************************
                               DEFINES
@@ -51,7 +50,7 @@
 #define SRSUE_MAX_BUFFER_SIZE_BYTES 12756
 #define SRSUE_BUFFER_HEADER_OFFSET  1024
 
-namespace bpt = boost::posix_time;
+#include "srslte/srslte.h"
 
 /*******************************************************************************
                               TYPEDEFS
@@ -113,10 +112,10 @@ public:
     uint32_t    N_bytes;
     uint8_t     buffer[SRSUE_MAX_BUFFER_SIZE_BYTES];
     uint8_t    *msg;
-    bpt::ptime  timestamp;
 
     byte_buffer_t():N_bytes(0)
     {
+      timestamp_is_set = false; 
       msg  = &buffer[SRSUE_BUFFER_HEADER_OFFSET];
       next = NULL; 
     }
@@ -134,7 +133,7 @@ public:
     {
       msg       = &buffer[SRSUE_BUFFER_HEADER_OFFSET];
       N_bytes   = 0;
-      timestamp = bpt::not_a_date_time;
+      timestamp_is_set = false; 
     }
     uint32_t get_headroom()
     {
@@ -142,16 +141,24 @@ public:
     }
     long get_latency_us()
     {
-      if(timestamp.is_not_a_date_time())
+      if(!timestamp_is_set)
         return 0;
-      bpt::time_duration td = bpt::microsec_clock::local_time() - timestamp;
-      return td.total_microseconds();
+      gettimeofday(&timestamp[2], NULL); 
+      return timestamp[0].tv_usec;
+    }
+    
+    void set_timestamp() 
+    {
+      gettimeofday(&timestamp[1], NULL); 
+      timestamp_is_set = true; 
     }
 
     // Linked list support
     byte_buffer_t*  get_next() { return next; }
     void set_next(byte_buffer_t *b) { next = b; }
 private:
+    struct timeval timestamp[3];
+    bool           timestamp_is_set; 
     byte_buffer_t *next;
 };
 
@@ -159,7 +166,6 @@ struct bit_buffer_t{
     uint32_t    N_bits;
     uint8_t     buffer[SRSUE_MAX_BUFFER_SIZE_BITS];
     uint8_t    *msg;
-    bpt::ptime  timestamp;
 
     bit_buffer_t():N_bits(0)
     {
@@ -177,7 +183,7 @@ struct bit_buffer_t{
     {
       msg       = &buffer[SRSUE_BUFFER_HEADER_OFFSET];
       N_bits    = 0;
-      timestamp = bpt::not_a_date_time;
+      timestamp_is_set = false; 
     }
     uint32_t get_headroom()
     {
@@ -185,11 +191,21 @@ struct bit_buffer_t{
     }
     long get_latency_us()
     {
-      if(timestamp.is_not_a_date_time())
+      if(!timestamp_is_set)
         return 0;
-      bpt::time_duration td = bpt::microsec_clock::local_time() - timestamp;
-      return td.total_microseconds();
+      gettimeofday(&timestamp[2], NULL); 
+      return timestamp[0].tv_usec;
     }
+    void set_timestamp() 
+    {
+      gettimeofday(&timestamp[1], NULL); 
+      timestamp_is_set = true; 
+    }
+
+private: 
+    struct timeval timestamp[3];
+    bool           timestamp_is_set; 
+
 };
 
 } // namespace srsue

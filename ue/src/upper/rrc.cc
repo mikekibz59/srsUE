@@ -397,7 +397,7 @@ void rrc::send_con_request()
   byte_buffer_t *pdcp_buf = pool->allocate();
   srslte_bit_pack_vector(bit_buf.msg, pdcp_buf->msg, bit_buf.N_bits);
   pdcp_buf->N_bytes = bit_buf.N_bits/8;
-  pdcp_buf->timestamp = bpt::microsec_clock::local_time();
+  pdcp_buf->set_timestamp();
 
   // Set UE contention resolution ID in MAC
   uint64_t uecri=0;
@@ -559,7 +559,7 @@ void rrc::send_con_setup_complete(byte_buffer_t *nas_msg)
   byte_buffer_t *pdcp_buf = pool->allocate();
   srslte_bit_pack_vector(bit_buf.msg, pdcp_buf->msg, bit_buf.N_bits);
   pdcp_buf->N_bytes = bit_buf.N_bits/8;
-  pdcp_buf->timestamp = bpt::microsec_clock::local_time();
+  pdcp_buf->set_timestamp();
 
   state = RRC_STATE_RRC_CONNECTED;
   rrc_log->console("RRC Connected\n");
@@ -592,7 +592,8 @@ void rrc::send_ul_info_transfer(uint32_t lcid, byte_buffer_t *sdu)
   }
   srslte_bit_pack_vector(bit_buf.msg, pdu->msg, bit_buf.N_bits);
   pdu->N_bytes = bit_buf.N_bits/8;
-  pdu->timestamp = bpt::microsec_clock::local_time();
+  pdu->set_timestamp();
+  pdu->set_timestamp();
 
   rrc_log->info("Sending RX Info Transfer\n");
   pdcp->write_sdu(lcid, pdu);
@@ -615,7 +616,7 @@ void rrc::send_security_mode_complete(uint32_t lcid, byte_buffer_t *pdu)
   }
   srslte_bit_pack_vector(bit_buf.msg, pdu->msg, bit_buf.N_bits);
   pdu->N_bytes = bit_buf.N_bits/8;
-  pdu->timestamp = bpt::microsec_clock::local_time();
+  pdu->set_timestamp();
 
   rrc_log->info("Sending Security Mode Complete\n");
   pdcp->write_sdu(lcid, pdu);
@@ -639,7 +640,7 @@ void rrc::send_rrc_con_reconfig_complete(uint32_t lcid, byte_buffer_t *pdu)
   }
   srslte_bit_pack_vector(bit_buf.msg, pdu->msg, bit_buf.N_bits);
   pdu->N_bytes = bit_buf.N_bits/8;
-  pdu->timestamp = bpt::microsec_clock::local_time();
+  pdu->set_timestamp();
 
   rrc_log->info("Sending RRC Connection Reconfig Complete\n");
   pdcp->write_sdu(lcid, pdu);
@@ -726,7 +727,7 @@ void rrc::send_rrc_ue_cap_info(uint32_t lcid, byte_buffer_t *pdu)
   }
   srslte_bit_pack_vector(bit_buf.msg, pdu->msg, bit_buf.N_bits);
   pdu->N_bytes = bit_buf.N_bits/8;
-  pdu->timestamp = bpt::microsec_clock::local_time();
+  pdu->set_timestamp();
 
   rrc_log->info("Sending UE Capability Info\n");
   pdcp->write_sdu(lcid, pdu);

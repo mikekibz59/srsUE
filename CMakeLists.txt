@@ -82,7 +82,6 @@ endif(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
 SET(BOOST_REQUIRED_COMPONENTS
     program_options
     system
-    date_time
     thread
 )
 if(UNIX AND EXISTS "/usr/lib64")

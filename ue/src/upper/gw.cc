@@ -53,7 +53,7 @@ void gw::init(pdcp_interface_gw *pdcp_, rrc_interface_gw *rrc_, ue_interface *ue
   gw_log  = gw_log_;
   running = true;
 
-  metrics_time = bpt::microsec_clock::local_time();
+  gettimeofday(&metrics_time[1], NULL);
   dl_tput_bytes = 0;
   ul_tput_bytes = 0;
 }
@@ -75,14 +75,17 @@ void gw::stop()
 
 void gw::get_metrics(gw_metrics_t &m)
 {
-  bpt::ptime now = bpt::microsec_clock::local_time();
-  bpt::time_duration td = now - metrics_time;
-  double secs = td.total_microseconds()/(double)1e6;
+  
+  gettimeofday(&metrics_time[2], NULL);
+  get_time_interval(metrics_time);
+  double secs = (double) metrics_time[0].tv_sec+metrics_time[0].tv_usec*1e-6;
+  
   m.dl_tput_mbps = (dl_tput_bytes*8/(double)1e6)/secs;
   m.ul_tput_mbps = (ul_tput_bytes*8/(double)1e6)/secs;
   gw_log->info("RX throughput: %4.6f Mbps. TX throughput: %4.6f Mbps.\n",
                m.dl_tput_mbps, m.ul_tput_mbps);
-  metrics_time = now;
+
+  memcpy(&metrics_time[1], &metrics_time[2], sizeof(struct timeval));
   dl_tput_bytes = 0;
   ul_tput_bytes = 0;
 }
@@ -246,7 +249,7 @@ void gw::run_thread()
               }
               
               // Send PDU directly to PDCP
-              pdu->timestamp = bpt::microsec_clock::local_time();
+              pdu->set_timestamp();
               ul_tput_bytes += pdu->N_bytes;
               pdcp->write_sdu(RB_ID_DRB1, pdu);
               

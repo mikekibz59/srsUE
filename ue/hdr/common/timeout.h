@@ -37,7 +37,8 @@
 #include <stdint.h>
 #include <pthread.h>
 #include <unistd.h>
-#include <boost/date_time/posix_time/posix_time.hpp>
+#include <sys/time.h>
+#include "srslte/srslte.h"
 
 namespace srslte {
   
@@ -61,7 +62,8 @@ public:
     if(duration_msec_ < 0)
       return;
     reset();
-    stop_time     = boost::posix_time::microsec_clock::local_time() + boost::posix_time::milliseconds(duration_msec_);
+    gettimeofday(&start_time[1], NULL);
+    duration_msec = duration_msec_;
     running       = true;
     timeout_id    = timeout_id_;
     callback      = callback_;
@@ -82,10 +84,12 @@ public:
   }
   void thread_func()
   {
-    boost::posix_time::time_duration diff;
-    boost::posix_time::ptime now = boost::posix_time::microsec_clock::local_time();
-    diff = stop_time - now;
-    int32_t usec = diff.total_microseconds();
+   
+    // substract time elapsed until now from timer duration
+    gettimeofday(&start_time[2], NULL); 
+    get_time_interval(start_time);
+    
+    int32_t usec = duration_msec*1000-start_time[0].tv_usec;
     if(usec > 0)
       usleep(usec);
     if(callback && running)
@@ -93,10 +97,13 @@ public:
   }
   bool expired()
   {
-    if(running)
-      return boost::posix_time::microsec_clock::local_time() > stop_time;
-    else
+    if(running) {
+      gettimeofday(&start_time[2], NULL); 
+      get_time_interval(start_time);        
+      return start_time[0].tv_usec > duration_msec*1000;
+    } else {
       return false;
+    }
   }
   bool is_running()
   {
@@ -104,11 +111,12 @@ public:
   }
 
 private:
-  boost::posix_time::ptime  stop_time;
+  struct timeval            start_time[3];
   pthread_t                 thread;
   uint32_t                  timeout_id;
   timeout_callback         *callback;
   bool                      running;
+  int duration_msec;
 };
 
 } // namespace srsue

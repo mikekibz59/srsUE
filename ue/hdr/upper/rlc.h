@@ -89,7 +89,7 @@ private:
 
   long                ul_tput_bytes[SRSUE_N_RADIO_BEARERS];
   long                dl_tput_bytes[SRSUE_N_RADIO_BEARERS];
-  bpt::ptime          metrics_time;
+  struct timeval      metrics_time[3];
 
   bool valid_lcid(uint32_t lcid);
 };

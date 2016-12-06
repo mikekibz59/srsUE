@@ -27,6 +27,7 @@
 #include <iostream>
 #include "upper/usim.h"
 #include "common/log_stdout.h"
+#include <assert.h>
 
 using namespace srsue;
 

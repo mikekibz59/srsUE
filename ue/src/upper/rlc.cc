@@ -51,7 +51,7 @@ void rlc::init(pdcp_interface_rlc *pdcp_,
   rlc_log = rlc_log_;
   mac_timers = mac_timers_;
 
-  metrics_time = bpt::microsec_clock::local_time();
+  gettimeofday(&metrics_time[1], NULL);
   reset_metrics(); 
 
   rlc_array[0].init(RLC_MODE_TM, rlc_log, RB_ID_SRB0, pdcp, rrc, mac_timers); // SRB0
@@ -70,9 +70,10 @@ void rlc::stop()
 
 void rlc::get_metrics(rlc_metrics_t &m)
 {
-  bpt::ptime now = bpt::microsec_clock::local_time();
-  bpt::time_duration td = now - metrics_time;
-  double secs = td.total_microseconds()/(double)1e6;
+  
+  gettimeofday(&metrics_time[2], NULL);
+  get_time_interval(metrics_time);
+  double secs = (double)metrics_time[0].tv_sec + metrics_time[0].tv_usec*1e-6;
   
   m.dl_tput_mbps = 0; 
   m.ul_tput_mbps = 0; 
@@ -87,7 +88,7 @@ void rlc::get_metrics(rlc_metrics_t &m)
     }
   }
 
-  metrics_time = now;
+  memcpy(&metrics_time[1], &metrics_time[2], sizeof(struct timeval));
   reset_metrics();
 }
 
@@ -156,7 +157,7 @@ void rlc::write_pdu_bcch_bch(uint8_t *payload, uint32_t nof_bytes)
   byte_buffer_t *buf = pool->allocate();
   memcpy(buf->msg, payload, nof_bytes);
   buf->N_bytes = nof_bytes;
-  buf->timestamp = bpt::microsec_clock::local_time();
+  buf->set_timestamp();
   pdcp->write_pdu_bcch_bch(buf);
 }
 
@@ -167,7 +168,7 @@ void rlc::write_pdu_bcch_dlsch(uint8_t *payload, uint32_t nof_bytes)
   byte_buffer_t *buf = pool->allocate();
   memcpy(buf->msg, payload, nof_bytes);
   buf->N_bytes = nof_bytes;
-  buf->timestamp = bpt::microsec_clock::local_time();
+  buf->set_timestamp();
   pdcp->write_pdu_bcch_dlsch(buf);
 }
 
@@ -178,7 +179,7 @@ void rlc::write_pdu_pcch(uint8_t *payload, uint32_t nof_bytes)
   byte_buffer_t *buf = pool->allocate();
   memcpy(buf->msg, payload, nof_bytes);
   buf->N_bytes = nof_bytes;
-  buf->timestamp = bpt::microsec_clock::local_time();
+  buf->set_timestamp();
   pdcp->write_pdu_pcch(buf);
 }
 

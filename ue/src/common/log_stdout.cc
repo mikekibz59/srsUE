@@ -24,7 +24,20 @@
  *
  */
 
-#include <boost/date_time/posix_time/posix_time.hpp>
+#include <cstdlib>
+#include <iostream>
+#include <iomanip>
+#include <ios>
+#include <iosfwd>
+#include <string>
+#include <string.h>
+#include <strings.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <sys/time.h>
+#include <stdarg.h>
+#include <string>
+
 #include "common/log_stdout.h"
 
 
@@ -36,6 +49,7 @@ void log_stdout::all_log(srslte::LOG_LEVEL_ENUM level,
                          uint32_t               tti,
                          char                  *msg)
 {
+  /*
   std::stringstream ss;
 
   ss << now_time() << " ";
@@ -45,6 +59,7 @@ void log_stdout::all_log(srslte::LOG_LEVEL_ENUM level,
   ss << msg;
 
   cout << ss.str();
+  */
 }
 
 void log_stdout::all_log(srslte::LOG_LEVEL_ENUM level,
@@ -53,6 +68,7 @@ void log_stdout::all_log(srslte::LOG_LEVEL_ENUM level,
                          uint8_t               *hex,
                          int                    size)
 {
+  /*
   std::stringstream ss;
 
   ss << now_time() << " ";
@@ -63,6 +79,7 @@ void log_stdout::all_log(srslte::LOG_LEVEL_ENUM level,
   ss << hex_string(hex, size);
 
   cout << ss.str();
+  */
 }
 
 void log_stdout::all_log_line(srslte::LOG_LEVEL_ENUM level,
@@ -71,6 +88,7 @@ void log_stdout::all_log_line(srslte::LOG_LEVEL_ENUM level,
                               int                    line,
                               char                  *msg)
 {
+  /*
   std::stringstream ss;
 
   ss << now_time() << " ";
@@ -80,6 +98,7 @@ void log_stdout::all_log_line(srslte::LOG_LEVEL_ENUM level,
   ss << msg;
 
   cout << ss.str();
+  */
 }
 
 void log_stdout::console(std::string message, ...) {
@@ -238,12 +257,15 @@ void log_stdout::debug_line(std::string file, int line, std::string message, ...
 
 std::string log_stdout::now_time()
 {
-  using namespace boost::posix_time;
-  return std::string(to_simple_string(microsec_clock::local_time()), 12, 12);
+  struct timeval t; 
+  gettimeofday(&t, NULL);
+  printf("---- fix me print time formated ----\n");
+  return std::string("ERR");
 }
 
 std::string log_stdout::hex_string(uint8_t *hex, int size)
 {
+  /*
   std::stringstream ss;
   int c = 0;
 
@@ -260,6 +282,8 @@ std::string log_stdout::hex_string(uint8_t *hex, int size)
     ss << "\n";
   }
   return ss.str();
+  */
+  return std::string(""); 
 }
 
 }
