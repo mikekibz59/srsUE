@@ -46,7 +46,8 @@ public:
   void init(rlc_interface_pdcp *rlc_,
             rrc_interface_pdcp *rrc_,
             gw_interface_pdcp *gw_,
-            srslte::log *pdcp_log_);
+            srslte::log *pdcp_log_,
+            uint8_t direction_);
   void stop();
 
   // RRC interface
@@ -69,9 +70,11 @@ private:
   srslte::log        *pdcp_log;
   pdcp_entity         pdcp_array[SRSUE_N_RADIO_BEARERS];
 
-  rlc_interface_pdcp  *rlc;
-  rrc_interface_pdcp  *rrc;
-  gw_interface_pdcp   *gw;
+  rlc_interface_pdcp *rlc;
+  rrc_interface_pdcp *rrc;
+  gw_interface_pdcp  *gw;
+
+  uint8_t             direction;
 
   bool valid_lcid(uint32_t lcid);
 };

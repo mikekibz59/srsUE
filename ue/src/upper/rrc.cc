@@ -31,6 +31,7 @@
 #include "upper/rrc.h"
 #include <srslte/utils/bit.h>
 #include "common/security.h"
+#include "common/bcd_helpers.h"
 
 #define TIMEOUT_RESYNC_REESTABLISH 100
 
@@ -282,7 +283,11 @@ void rrc::write_pdu_bcch_dlsch(byte_buffer_t *pdu)
                     liblte_rrc_si_periodicity_num[sib1.sched_info[0].si_periodicity]);
       std::stringstream ss;
       for(int i=0;i<sib1.N_plmn_ids;i++){
-        ss << " PLMN Id: MCC " << sib1.plmn_id[i].id.mcc << " MNC " << sib1.plmn_id[i].id.mnc;
+        std::string mcc;
+        std::string mnc;
+        mcc_to_string(sib1.plmn_id[i].id.mcc, &mcc);
+        mnc_to_string(sib1.plmn_id[i].id.mnc, &mnc);
+        ss << " PLMN Id: MCC " << mcc << " MNC " << mnc;
       }
       
       // Set TDD Config 

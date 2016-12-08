@@ -227,14 +227,16 @@ LIBLTE_ERROR_ENUM liblte_security_generate_k_asme(uint8  *ck,
     {
         // Construct S
         s[0] = 0x10; // FC
-        s[1] = (((mcc/10) % 10) << 4) | ((mcc/100) % 10); // First byte of P0
-        if(mnc < 100)
+        s[1] = (mcc & 0x00F0) | ((mcc & 0x0F00) >> 8);           // First byte of P0
+        if((mnc & 0xFF00) == 0xFF00)
         {
-            s[2] = 0xF0 | (mcc % 10); // Second byte of P0
-            s[3] = ((mnc % 10) << 4) | ((mnc/10) % 10); // Third byte of P0
+            // 2-digit MNC
+            s[2] = 0xF0 | (mcc & 0x000F);                         // Second byte of P0
+            s[3] = ((mnc & 0x000F) << 4) | ((mnc & 0x00F0) >> 4); // Third byte of P0
         }else{
-            s[2] = ((mnc % 10) << 4) | (mcc % 10); // Second byte of P0
-            s[3] = (((mnc/10) % 10) << 4) | ((mnc/100) % 10); // Third byte of P0
+            // 3-digit MNC
+            s[2] = ((mnc & 0x000F) << 4) | (mcc & 0x000F);        // Second byte of P0
+            s[3] = ((mnc & 0x00F0)) | ((mnc & 0x0F00) >> 8);      // Third byte of P0
         }
         s[4] = 0x00; // First byte of L0
         s[5] = 0x03; // Second byte of L0

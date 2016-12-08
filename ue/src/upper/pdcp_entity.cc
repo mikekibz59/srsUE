@@ -47,14 +47,16 @@ void pdcp_entity::init(rlc_interface_pdcp            *rlc_,
                        gw_interface_pdcp             *gw_,
                        srslte::log                   *log_,
                        uint32_t                       lcid_,
+                       u_int8_t                       direction_,
                        LIBLTE_RRC_PDCP_CONFIG_STRUCT *cnfg)
 {
-  rlc     = rlc_;
-  rrc     = rrc_;
-  gw      = gw_;
-  log     = log_;
-  lcid    = lcid_;
-  active  = true;
+  rlc       = rlc_;
+  rrc       = rrc_;
+  gw        = gw_;
+  log       = log_;
+  lcid      = lcid_;
+  direction = direction_;
+  active    = true;
 
   tx_count    = 0;
   rx_count    = 0;
@@ -103,7 +105,7 @@ void pdcp_entity::write_sdu(byte_buffer_t *sdu)
       integrity_generate(&k_rrc_int[16],
                          tx_count,
                          lcid-1,
-                         SECURITY_DIRECTION_UPLINK,
+                         direction,
                          sdu->msg,
                          sdu->N_bytes-4,
                          &sdu->msg[sdu->N_bytes-4]);
