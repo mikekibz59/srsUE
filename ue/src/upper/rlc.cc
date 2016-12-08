@@ -80,7 +80,7 @@ void rlc::get_metrics(rlc_metrics_t &m)
     m.dl_tput_mbps += (dl_tput_bytes[i]*8/(double)1e6)/secs;
     m.ul_tput_mbps += (ul_tput_bytes[i]*8/(double)1e6)/secs;    
     if(rlc_array[i].active()) {
-      rlc_log->info("LCID=%d, TX throughput: %4.6f Mbps. RX throughput: %4.6f Mbps.\n",
+      rlc_log->info("LCID=%d, RX throughput: %4.6f Mbps. TX throughput: %4.6f Mbps.\n",
                     i,
                     (dl_tput_bytes[i]*8/(double)1e6)/secs,
                     (ul_tput_bytes[i]*8/(double)1e6)/secs);
