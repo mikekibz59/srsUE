@@ -24,11 +24,9 @@
  *
  */
 
-#include <cstdlib>
 #include <iostream>
+#include <sstream>
 #include <iomanip>
-#include <ios>
-#include <iosfwd>
 #include <string>
 #include <string.h>
 #include <strings.h>
@@ -49,7 +47,6 @@ void log_stdout::all_log(srslte::LOG_LEVEL_ENUM level,
                          uint32_t               tti,
                          char                  *msg)
 {
-  /*
   std::stringstream ss;
 
   ss << now_time() << " ";
@@ -59,7 +56,6 @@ void log_stdout::all_log(srslte::LOG_LEVEL_ENUM level,
   ss << msg;
 
   cout << ss.str();
-  */
 }
 
 void log_stdout::all_log(srslte::LOG_LEVEL_ENUM level,
@@ -68,7 +64,6 @@ void log_stdout::all_log(srslte::LOG_LEVEL_ENUM level,
                          uint8_t               *hex,
                          int                    size)
 {
-  /*
   std::stringstream ss;
 
   ss << now_time() << " ";
@@ -79,7 +74,6 @@ void log_stdout::all_log(srslte::LOG_LEVEL_ENUM level,
   ss << hex_string(hex, size);
 
   cout << ss.str();
-  */
 }
 
 void log_stdout::all_log_line(srslte::LOG_LEVEL_ENUM level,
@@ -88,7 +82,6 @@ void log_stdout::all_log_line(srslte::LOG_LEVEL_ENUM level,
                               int                    line,
                               char                  *msg)
 {
-  /*
   std::stringstream ss;
 
   ss << now_time() << " ";
@@ -98,7 +91,6 @@ void log_stdout::all_log_line(srslte::LOG_LEVEL_ENUM level,
   ss << msg;
 
   cout << ss.str();
-  */
 }
 
 void log_stdout::console(std::string message, ...) {

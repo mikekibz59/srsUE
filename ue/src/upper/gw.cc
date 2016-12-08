@@ -27,6 +27,8 @@
 
 #include "upper/gw.h"
 
+#include <errno.h>
+#include <unistd.h>
 #include <fcntl.h>
 #include <arpa/inet.h>
 #include <linux/ip.h>

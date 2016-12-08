@@ -24,6 +24,7 @@
  *
  */
 
+#include <assert.h>
 #include <iostream>
 #include "upper/rlc_am.h"
 

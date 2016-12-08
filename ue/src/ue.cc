@@ -25,17 +25,18 @@
  */
 
 
-#include <boost/algorithm/string.hpp>
 #include "ue.h"
 #include "srslte_version_check.h"
 #include "srslte/srslte.h"
+#include <pthread.h>
+#include <iostream>
 
 using namespace srslte;
 
 namespace srsue{
 
 ue*           ue::instance = NULL;
-boost::mutex  ue_instance_mutex;
+pthread_mutex_t ue_instance_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 bool ue::check_srslte_version(void) {
   bool ret = (0 != srslte_check_version(REQ_SRSLTE_VMAJOR, REQ_SRSLTE_VMINOR, REQ_SRSLTE_VPATCH));
@@ -51,19 +52,21 @@ bool ue::check_srslte_version(void) {
 
 ue* ue::get_instance(void)
 {
-    boost::mutex::scoped_lock lock(ue_instance_mutex);
-    if(NULL == instance) {
-        instance = new ue();
-    }
-    return(instance);
+  pthread_mutex_lock(&ue_instance_mutex);
+  if(NULL == instance) {
+      instance = new ue();
+  }
+  pthread_mutex_unlock(&ue_instance_mutex);
+  return(instance);
 }
 void ue::cleanup(void)
 {
-    boost::mutex::scoped_lock lock(ue_instance_mutex);
-    if(NULL != instance) {
-        delete instance;
-        instance = NULL;
-    }
+  pthread_mutex_lock(&ue_instance_mutex);
+  if(NULL != instance) {
+      delete instance;
+      instance = NULL;
+  }
+  pthread_mutex_unlock(&ue_instance_mutex);
 }
 
 ue::ue()
@@ -298,7 +301,7 @@ void ue::handle_rf_msg(srslte_rf_error_t error)
 
 srslte::LOG_LEVEL_ENUM ue::level(std::string l)
 {
-  boost::to_upper(l);
+  std::transform(l.begin(), l.end(), l.begin(), ::toupper);
   if("NONE" == l){
     return srslte::LOG_LEVEL_NONE;
   }else if("ERROR" == l){

@@ -38,8 +38,6 @@
 #include <stdio.h>
 #include <string>
 #include <boost/shared_ptr.hpp>
-#include <boost/thread/mutex.hpp>
-#include <boost/thread/condition.hpp>
 #include <boost/circular_buffer.hpp>
 
 namespace srslte {
@@ -65,9 +63,9 @@ private:
   bool                                inited;
   bool                                not_done;
   std::string                         filename;
-  boost::condition                    not_empty;
-  boost::condition                    not_full;
-  boost::mutex                        mutex;
+  pthread_cond_t                      not_empty;
+  pthread_cond_t                      not_full;
+  pthread_mutex_t                     mutex;
   pthread_t                           thread;
   boost::circular_buffer<str_ptr>     buffer;
 };

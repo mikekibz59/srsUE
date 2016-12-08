@@ -32,8 +32,6 @@
 *******************************************************************************/
 
 #include "common/common.h"
-#include <boost/thread/mutex.hpp>
-#include <boost/thread/lock_guard.hpp>
 
 namespace srslte {
 
@@ -49,7 +47,7 @@ class buffer_pool{
 public:
   // Singleton
   static buffer_pool   *instance;
-
+  
   static buffer_pool*   get_instance(void);
   static void           cleanup(void);
 
@@ -65,8 +63,7 @@ private:
   static const int      POOL_SIZE = 2048;
   byte_buffer_t        *pool;
   byte_buffer_t        *first_available;
-  boost::mutex          mutex;
-  static boost::mutex   instance_mutex;
+  pthread_mutex_t       mutex;  
   int                   allocated;
 };
 

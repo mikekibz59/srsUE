@@ -25,8 +25,11 @@
  */
 
 #include <cstdlib>
-#include <iomanip>
 #include <iostream>
+#include <sstream>
+#include <iomanip>
+#include <string.h>
+#include <sys/time.h>
 
 #include "common/log_filter.h"
 
@@ -54,7 +57,6 @@ void log_filter::all_log(srslte::LOG_LEVEL_ENUM level,
                          char                  *msg)
 {
   if(logger_h) {
-  /*
     std::stringstream ss;
 
     ss << now_time() << " ";
@@ -66,7 +68,6 @@ void log_filter::all_log(srslte::LOG_LEVEL_ENUM level,
 
     str_ptr s_ptr(new std::string(ss.str()));
     logger_h->log(s_ptr);
-    */
   }
 }
 
@@ -77,7 +78,6 @@ void log_filter::all_log(srslte::LOG_LEVEL_ENUM level,
                          int                    size)
 {
   if(logger_h) {
-  /*
     std::stringstream ss;
 
     ss << now_time() << " ";
@@ -90,7 +90,6 @@ void log_filter::all_log(srslte::LOG_LEVEL_ENUM level,
 
     str_ptr s_ptr(new std::string(ss.str()));
     logger_h->log(s_ptr);
-    */
   }
 }
 
@@ -101,7 +100,6 @@ void log_filter::all_log_line(srslte::LOG_LEVEL_ENUM level,
                               char                  *msg)
 {
   if(logger_h) {
-  /*
     std::stringstream ss;
 
     ss << now_time() << " ";
@@ -113,7 +111,6 @@ void log_filter::all_log_line(srslte::LOG_LEVEL_ENUM level,
 
     str_ptr s_ptr(new std::string(ss.str()));
     logger_h->log(s_ptr);
-    */
   }
 }
 
@@ -273,10 +270,20 @@ void log_filter::debug_line(std::string file, int line, std::string message, ...
 
 std::string log_filter::now_time()
 {
-  struct timeval t; 
-  gettimeofday(&t, NULL);
-  printf("---- fix me print time formated ----\n");
-  return std::string("ERR");
+  struct timeval rawtime;
+  struct tm * timeinfo;
+  char buffer[64];
+  char us[16];
+  
+  gettimeofday(&rawtime, NULL);
+  timeinfo = localtime(&rawtime.tv_sec);
+  
+  strftime(buffer,64,"%H:%M:%S",timeinfo);
+  strcat(buffer,".");
+  snprintf(us,16,"%ld",rawtime.tv_usec);
+  strcat(buffer,us);
+  
+  return std::string(buffer);
 }
 
 std::string log_filter::hex_string(uint8_t *hex, int size)

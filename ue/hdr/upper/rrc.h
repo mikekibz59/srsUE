@@ -101,7 +101,7 @@ private:
 
   srslte::bit_buffer_t  bit_buf;
 
-  boost::mutex          mutex;
+  pthread_mutex_t       mutex;
   
   rrc_state_t           state;
   uint8_t               transaction_id;

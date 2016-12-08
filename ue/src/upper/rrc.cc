@@ -76,6 +76,8 @@ void rrc::init(phy_interface_rrc     *phy_,
   rrc_log = rrc_log_;
   mac_timers = mac_timers_;
 
+  pthread_mutex_init(&mutex, NULL); 
+  
   ue_category = SRSUE_UE_CATEGORY; 
   
   transaction_id = 0;
@@ -200,22 +202,21 @@ void rrc::in_sync()
 
 bool rrc::rrc_connected()
 {
-  boost::mutex::scoped_lock lock(mutex);
   return (RRC_STATE_RRC_CONNECTED == state);
 }
 
 void rrc::rrc_connect() {
-  boost::mutex::scoped_lock lock(mutex);
+  pthread_mutex_lock(&mutex);
   if(RRC_STATE_IDLE == state) {
     rrc_log->info("RRC in IDLE state - sending connection request.\n");
     state = RRC_STATE_WAIT_FOR_CON_SETUP;
     send_con_request();
   }
+  pthread_mutex_unlock(&mutex);
 }
 
 bool rrc::have_drb()
 {
-  boost::mutex::scoped_lock lock(mutex);
   return drb_up;
 }
 
@@ -859,19 +860,20 @@ void rrc::timer_expired(uint32_t timeout_id)
 *******************************************************************************/
 
 void rrc::rrc_connection_release() {
-    boost::mutex::scoped_lock lock(mutex);
-    drb_up = false;
-    state  = RRC_STATE_IDLE;
-    set_phy_default();
-    set_mac_default();
-    phy->reset();
-    mac->reset();
-    rlc->reset();
-    pdcp->reset();
-    mac_timers->get(t310)->stop();
-    mac_timers->get(t311)->stop();
-    rrc_log->console("RRC Connection released.\n");
-    mac->pcch_start_rx();
+  pthread_mutex_lock(&mutex);
+  drb_up = false;
+  state  = RRC_STATE_IDLE;
+  set_phy_default();
+  set_mac_default();
+  phy->reset();
+  mac->reset();
+  rlc->reset();
+  pdcp->reset();
+  mac_timers->get(t310)->stop();
+  mac_timers->get(t311)->stop();
+  rrc_log->console("RRC Connection released.\n");
+  mac->pcch_start_rx();
+  pthread_mutex_unlock(&mutex);
 }
 
 void rrc::test_con_restablishment()

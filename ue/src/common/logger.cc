@@ -50,6 +50,9 @@ logger::~logger() {
 }
 
 void logger::init(std::string file) {
+  pthread_mutex_init(&mutex, NULL); 
+  pthread_cond_init(&not_empty, NULL);
+  pthread_cond_init(&not_full, NULL);
   filename = file;
   logfile = fopen(filename.c_str(), "w");
   if(logfile==NULL) {
@@ -65,15 +68,15 @@ void logger::log(const char *msg) {
 }
 
 void logger::log(str_ptr msg) {
-    boost::mutex::scoped_lock lock(mutex);
-    if(buffer.full()) {
-      buffer.set_capacity(buffer.capacity()*2);
-      if(logfile)
-        fprintf(logfile, "Log queue full, doubling capacity\n");
-    }
-    buffer.push_back(msg);
-    lock.unlock();
-    not_empty.notify_one();
+  pthread_mutex_lock(&mutex);
+  if(buffer.full()) {
+    buffer.set_capacity(buffer.capacity()*2);
+    if(logfile)
+      fprintf(logfile, "Log queue full, doubling capacity\n");
+  }
+  buffer.push_back(msg);
+  pthread_cond_signal(&not_empty);
+  pthread_mutex_unlock(&mutex);
 }
 
 void* logger::start(void *input) {
@@ -84,14 +87,16 @@ void* logger::start(void *input) {
 
 void logger::reader_loop() {
   while(not_done) {
-    boost::mutex::scoped_lock lock(mutex);
-    while(buffer.empty()) not_empty.wait(lock);
+  pthread_mutex_lock(&mutex);
+    while(buffer.empty()) {
+      pthread_cond_wait(&not_empty, &mutex);
+    }
     str_ptr s = buffer.front();
     buffer.pop_front();
-    lock.unlock();
-    not_full.notify_one();
+    pthread_cond_signal(&not_full);
     if(logfile)
       fprintf(logfile, "%s", s.get()->c_str());
+    pthread_mutex_unlock(&mutex);
   }
 }
 

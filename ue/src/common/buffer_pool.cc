@@ -25,30 +25,38 @@
  */
 
 
+#include <pthread.h>
 #include "common/buffer_pool.h"
 #include <stdio.h>
 
 namespace srslte{
 
 buffer_pool* buffer_pool::instance = NULL;
-boost::mutex buffer_pool::instance_mutex;
+pthread_mutex_t instance_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 buffer_pool* buffer_pool::get_instance(void)
 {
-  boost::lock_guard<boost::mutex> lock(instance_mutex);
+  pthread_mutex_lock(&instance_mutex);
   if(NULL == instance)
     instance = new buffer_pool();
+  pthread_mutex_unlock(&instance_mutex);
   return instance;
+}
+
+buffer_pool::buffer_pool(const buffer_pool&)
+{
+  pthread_mutex_init(&mutex, NULL);
 }
 
 void buffer_pool::cleanup(void)
 {
-  boost::lock_guard<boost::mutex> lock(instance_mutex);
+  pthread_mutex_lock(&instance_mutex);
   if(NULL != instance)
   {
     delete instance;
     instance = NULL;
   }
+  pthread_mutex_unlock(&instance_mutex);
 }
 
 buffer_pool::buffer_pool()
@@ -65,7 +73,7 @@ buffer_pool::buffer_pool()
 
 byte_buffer_t* buffer_pool::allocate()
 {
-  boost::lock_guard<boost::mutex> lock(mutex);
+  pthread_mutex_lock(&mutex);
 
   if(first_available == NULL)
   {
@@ -78,18 +86,21 @@ byte_buffer_t* buffer_pool::allocate()
   first_available = b->get_next();
   allocated++;
 
+  pthread_mutex_unlock(&mutex);
   return b;
 }
 
 void buffer_pool::deallocate(byte_buffer_t *b)
 {
-  boost::lock_guard<boost::mutex> lock(mutex);
+  pthread_mutex_lock(&mutex);
 
   // Add to front of available list
   b->reset();
   b->set_next(first_available);
   first_available = b;
   allocated--;
+  
+  pthread_mutex_unlock(&mutex);
 }
 
 
