@@ -34,8 +34,7 @@ using namespace std;
 namespace srslte{
 
 logger::logger()
-  :buffer(LOG_BUFFER_SIZE)
-  ,inited(false)
+  :inited(false)
   ,not_done(true)
 {}
 
@@ -43,7 +42,7 @@ logger::~logger() {
   not_done = false;
   log("Closing log");
   if(inited) {
-    pthread_join(thread, NULL);
+    wait_thread_finish();
     flush();
     fclose(logfile);
   }
@@ -58,7 +57,7 @@ void logger::init(std::string file) {
   if(logfile==NULL) {
     printf("Error: could not create log file, no messages will be logged");
   }
-  pthread_create(&thread, NULL, &start, this);
+  start();
   inited = true;
 }
 
@@ -69,43 +68,35 @@ void logger::log(const char *msg) {
 
 void logger::log(str_ptr msg) {
   pthread_mutex_lock(&mutex);
-  if(buffer.full()) {
-    buffer.set_capacity(buffer.capacity()*2);
-    if(logfile)
-      fprintf(logfile, "Log queue full, doubling capacity\n");
-  }
   buffer.push_back(msg);
   pthread_cond_signal(&not_empty);
   pthread_mutex_unlock(&mutex);
 }
 
-void* logger::start(void *input) {
-  logger *l = (logger*)input;
-  l->reader_loop();
-  return NULL;
-}
-
-void logger::reader_loop() {
+void logger::run_thread() {
   while(not_done) {
   pthread_mutex_lock(&mutex);
     while(buffer.empty()) {
       pthread_cond_wait(&not_empty, &mutex);
     }
     str_ptr s = buffer.front();
-    buffer.pop_front();
     pthread_cond_signal(&not_full);
     if(logfile)
-      fprintf(logfile, "%s", s.get()->c_str());
+      fprintf(logfile, "%s", s->c_str());
+    delete s; 
+    buffer.pop_front();
     pthread_mutex_unlock(&mutex);
   }
 }
 
 void logger::flush() {
-  boost::circular_buffer<str_ptr>::iterator it;
+  std::deque<str_ptr>::iterator it;
   for(it=buffer.begin();it!=buffer.end();it++)
   {
+    str_ptr s = *it; 
     if(logfile)
-      fprintf(logfile, "%s", it->get()->c_str());
+      fprintf(logfile, "%s", s->c_str());
+    delete s; 
   }
 }
 

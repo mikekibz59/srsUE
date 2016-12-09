@@ -144,6 +144,7 @@ public:
       if(!timestamp_is_set)
         return 0;
       gettimeofday(&timestamp[2], NULL); 
+      get_time_interval(timestamp);
       return timestamp[0].tv_usec;
     }
     
@@ -157,6 +158,19 @@ public:
     byte_buffer_t*  get_next() { return next; }
     void set_next(byte_buffer_t *b) { next = b; }
 private:
+  
+  
+  void get_time_interval(struct timeval * tdata) {
+
+    tdata[0].tv_sec = tdata[2].tv_sec - tdata[1].tv_sec;
+    tdata[0].tv_usec = tdata[2].tv_usec - tdata[1].tv_usec;
+    if (tdata[0].tv_usec < 0) {
+      tdata[0].tv_sec--;
+      tdata[0].tv_usec += 1000000;
+    }
+  }
+
+  
     struct timeval timestamp[3];
     bool           timestamp_is_set; 
     byte_buffer_t *next;

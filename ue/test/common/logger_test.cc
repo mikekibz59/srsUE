@@ -27,6 +27,7 @@
 #define NTHREADS 100
 #define NMSGS    100
 
+#include <stdlib.h>
 #include <stdio.h>
 #include "common/logger.h"
 

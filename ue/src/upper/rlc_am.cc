@@ -286,9 +286,10 @@ int rlc_am::read_pdu(uint8_t *payload, uint32_t nof_bytes)
   log->debug("MAC opportunity - %d bytes\n", nof_bytes);
 
   // Tx STATUS if requested
-  if(do_status && !status_prohibited())
+  if(do_status && !status_prohibited()) {
+    pthread_mutex_unlock(&mutex);
     return build_status_pdu(payload, nof_bytes);
-
+  }
   // RETX if required
   if(retx_queue.size() > 0) {
     pthread_mutex_unlock(&mutex);

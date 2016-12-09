@@ -43,11 +43,6 @@ buffer_pool* buffer_pool::get_instance(void)
   return instance;
 }
 
-buffer_pool::buffer_pool(const buffer_pool&)
-{
-  pthread_mutex_init(&mutex, NULL);
-}
-
 void buffer_pool::cleanup(void)
 {
   pthread_mutex_lock(&instance_mutex);
@@ -61,6 +56,7 @@ void buffer_pool::cleanup(void)
 
 buffer_pool::buffer_pool()
 {
+  pthread_mutex_init(&mutex, NULL);
   pool = new byte_buffer_t[POOL_SIZE];
   first_available = &pool[0];
   for(int i=0;i<POOL_SIZE-1;i++)
@@ -78,6 +74,7 @@ byte_buffer_t* buffer_pool::allocate()
   if(first_available == NULL)
   {
     printf("Error - buffer pool is empty\n");
+    pthread_mutex_unlock(&mutex);
     return NULL;
   }
 

@@ -13,6 +13,7 @@
 #include <iostream>
 #include <sstream>
 #include <iomanip>
+#include <assert.h>
 
 #include "srslte/utils/debug.h"
 #include "mac/mac.h"

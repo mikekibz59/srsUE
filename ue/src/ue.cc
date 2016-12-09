@@ -30,6 +30,9 @@
 #include "srslte/srslte.h"
 #include <pthread.h>
 #include <iostream>
+#include <string>
+#include <algorithm>
+#include <iterator>
 
 using namespace srslte;
 

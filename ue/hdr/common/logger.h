@@ -36,15 +36,15 @@
 #define LOGGER_H
 
 #include <stdio.h>
+#include <deque>
 #include <string>
-#include <boost/shared_ptr.hpp>
-#include <boost/circular_buffer.hpp>
+#include "common/threads.h"
 
 namespace srslte {
 
-typedef boost::shared_ptr<std::string> str_ptr;
+typedef std::string* str_ptr;
 
-class logger
+class logger : public thread
 {
 public:
   logger();
@@ -55,19 +55,18 @@ public:
   void log(str_ptr msg);
 
 private:
-  static void* start(void *input);
-  void reader_loop();
+  void run_thread(); 
   void flush();
 
-  FILE*                               logfile;
-  bool                                inited;
-  bool                                not_done;
-  std::string                         filename;
-  pthread_cond_t                      not_empty;
-  pthread_cond_t                      not_full;
-  pthread_mutex_t                     mutex;
-  pthread_t                           thread;
-  boost::circular_buffer<str_ptr>     buffer;
+  FILE*                 logfile;
+  bool                  inited;
+  bool                  not_done;
+  std::string           filename;
+  pthread_cond_t        not_empty;
+  pthread_cond_t        not_full;
+  pthread_mutex_t       mutex;
+  pthread_t             thread;
+  std::deque<str_ptr> buffer;
 };
 
 } // namespace srsue
