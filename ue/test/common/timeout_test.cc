@@ -72,12 +72,11 @@ int main(int argc, char **argv) {
   timeout t;
 
   gettimeofday(&c.start_time[1], NULL);
-  t.start(0, duration_msec, &c);
+  t.start(duration_msec, 0, &c);
   c.wait();
-
   gettimeofday(&c.start_time[2], NULL);
   get_time_interval(c.start_time);
-  uint32_t diff_ms = c.start_time[0].tv_usec*1000;
+  uint32_t diff_ms = c.start_time[0].tv_usec*1e-3;
   printf("Target duration: %dms, started: %ld:%ld, ended: %ld:%ld, actual duration %dms\n",
          duration_msec, c.start_time[1].tv_sec, c.start_time[1].tv_usec, c.start_time[2].tv_sec, c.start_time[2].tv_usec, diff_ms);
 
