@@ -56,7 +56,7 @@ inline bool string_to_mcc(std::string str, uint16_t *mcc)
 
 inline bool mcc_to_string(uint16_t mcc, std::string *str)
 {
-  if(mcc & 0xF000 != 0xF000) {
+  if((mcc & 0xF000) != 0xF000) {
     return false;
   }
   *str = "";
