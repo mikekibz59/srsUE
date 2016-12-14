@@ -3867,12 +3867,16 @@ typedef enum{
 }LIBLTE_RRC_DISCARD_TIMER_ENUM;
 static const char liblte_rrc_discard_timer_text[LIBLTE_RRC_DISCARD_TIMER_N_ITEMS][20] = {    "ms50",    "ms100",    "ms150",    "ms300",
                                                                                             "ms500",    "ms750",   "ms1500", "INFINITY"};
+static const int32 liblte_rrc_discard_timer_num[LIBLTE_RRC_DISCARD_TIMER_N_ITEMS] = { 50, 100, 150, 300, 500, 750, 1500, -1};                                                                                            
 typedef enum{
     LIBLTE_RRC_PDCP_SN_SIZE_7_BITS = 0,
     LIBLTE_RRC_PDCP_SN_SIZE_12_BITS,
     LIBLTE_RRC_PDCP_SN_SIZE_N_ITEMS,
 }LIBLTE_RRC_PDCP_SN_SIZE_ENUM;
 static const char liblte_rrc_pdcp_sn_size_text[LIBLTE_RRC_PDCP_SN_SIZE_N_ITEMS][20] = {"7-bits", "12-bits"};
+
+static const int8 liblte_rrc_pdcp_sn_size_num[LIBLTE_RRC_PDCP_SN_SIZE_N_ITEMS] = {7, 12};
+
 // Structs
 typedef struct{
     LIBLTE_RRC_DISCARD_TIMER_ENUM discard_timer;
@@ -4659,6 +4663,7 @@ typedef enum{
     LIBLTE_RRC_SN_FIELD_LENGTH_N_ITEMS,
 }LIBLTE_RRC_SN_FIELD_LENGTH_ENUM;
 static const char liblte_rrc_sn_field_length_text[LIBLTE_RRC_SN_FIELD_LENGTH_N_ITEMS][20] = {"size5", "size10"};
+static const uint8 liblte_rrc_sn_field_length_num[LIBLTE_RRC_SN_FIELD_LENGTH_N_ITEMS] = {5, 10};
 typedef enum{
     LIBLTE_RRC_SPS_INTERVAL_DL_SF10 = 0,
     LIBLTE_RRC_SPS_INTERVAL_DL_SF20,
