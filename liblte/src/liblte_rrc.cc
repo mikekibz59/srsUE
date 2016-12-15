@@ -4530,18 +4530,20 @@ LIBLTE_ERROR_ENUM liblte_rrc_pack_phys_cell_id_range_ie(LIBLTE_RRC_PHYS_CELL_ID_
                                                         uint8                                **ie_ptr)
 {
     LIBLTE_ERROR_ENUM err = LIBLTE_ERROR_INVALID_INPUTS;
+    bool              opt;
 
     if(phys_cell_id_range != NULL &&
        ie_ptr             != NULL)
     {
+        opt = (LIBLTE_RRC_PHYS_CELL_ID_RANGE_N1 != phys_cell_id_range->range);
+
+        liblte_value_2_bits(opt, ie_ptr, 1);
+
         liblte_rrc_pack_phys_cell_id_ie(phys_cell_id_range->start, ie_ptr);
 
-        if(LIBLTE_RRC_PHYS_CELL_ID_RANGE_N1 != phys_cell_id_range->range)
+        if(opt)
         {
-            liblte_value_2_bits(1,                         ie_ptr, 1);
             liblte_value_2_bits(phys_cell_id_range->range, ie_ptr, 4);
-        }else{
-            liblte_value_2_bits(0, ie_ptr, 1);
         }
 
         err = LIBLTE_SUCCESS;
@@ -4558,9 +4560,10 @@ LIBLTE_ERROR_ENUM liblte_rrc_unpack_phys_cell_id_range_ie(uint8                 
     if(ie_ptr             != NULL &&
        phys_cell_id_range != NULL)
     {
+        opt = liblte_bits_2_value(ie_ptr, 1);
+
         liblte_rrc_unpack_phys_cell_id_ie(ie_ptr, &phys_cell_id_range->start);
 
-        opt = liblte_bits_2_value(ie_ptr, 1);
         if(true == opt)
         {
             phys_cell_id_range->range = (LIBLTE_RRC_PHYS_CELL_ID_RANGE_ENUM)liblte_bits_2_value(ie_ptr, 4);
