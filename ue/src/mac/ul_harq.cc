@@ -288,7 +288,9 @@ void ul_harq_entity::ul_harq_process::generate_retx(uint32_t tti_tx, mac_interfa
   current_tx_nb++;    
   if (grant) {
     // HARQ entity requests an adaptive transmission
-    current_irv = irv_of_rv[grant->rv%4];
+    if (grant->rv) {
+      current_irv = irv_of_rv[grant->rv%4];
+    }
     harq_feedback = false; 
     Info("UL %d:  Adaptive retx=%d, RV=%d, TBS=%d\n", 
          pid, current_tx_nb, get_rv(), grant->n_bytes);
