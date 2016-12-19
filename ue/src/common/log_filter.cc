@@ -280,7 +280,7 @@ std::string log_filter::now_time()
   
   strftime(buffer,64,"%H:%M:%S",timeinfo);
   strcat(buffer,".");
-  snprintf(us,16,"%ld",rawtime.tv_usec);
+  snprintf(us,16,"%06ld",rawtime.tv_usec);
   strcat(buffer,us);
   
   return std::string(buffer);
