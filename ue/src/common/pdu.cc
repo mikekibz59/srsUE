@@ -403,12 +403,12 @@ uint64_t sch_subh::get_con_res_id()
     return 0; 
   }
 }
-uint8_t sch_subh::get_phr()
+float sch_subh::get_phr()
 {
   if (payload) {
-    return (uint8_t) payload[0]&0x3f;
+    return (float) (payload[0]&0x3f) - 23;
   } else {
-    return (uint8_t) w_payload_ce[0]&0x3f;
+    return (float) (w_payload_ce[0]&0x3f) - 23;
   }
 }
 

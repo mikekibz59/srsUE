@@ -231,7 +231,7 @@ public:
   uint16_t get_c_rnti();
   uint64_t get_con_res_id();
   uint8_t  get_ta_cmd();
-  uint8_t  get_phr();
+  float    get_phr();
   int      get_bsr(uint32_t buff_size[4]);
   
   // Writing functions
