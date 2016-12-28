@@ -220,56 +220,55 @@ void gw::run_thread()
 
     while(running)
     {
-      if (pdu) {
-        if (SRSUE_MAX_BUFFER_SIZE_BYTES-SRSUE_BUFFER_HEADER_OFFSET > idx) {
-          N_bytes = read(tun_fd, &pdu->msg[idx], SRSUE_MAX_BUFFER_SIZE_BYTES-SRSUE_BUFFER_HEADER_OFFSET - idx);
-        } else {
-          gw_log->error("GW pdu buffer full - gw receive thread exiting.\n");
-          gw_log->console("GW pdu buffer full - gw receive thread exiting.\n");
-          break; 
-        }
-        gw_log->debug("Read %d bytes from TUN fd=%d, idx=%d\n", N_bytes, tun_fd, idx);
-        if(N_bytes > 0)
-        {
-          pdu->N_bytes = idx + N_bytes;
-          ip_pkt       = (struct iphdr*)pdu->msg;
-
-          // Warning: Accept only IPv4 packets
-          if (ip_pkt->version == 4) {
-            // Check if entire packet was received
-            if(ntohs(ip_pkt->tot_len) == pdu->N_bytes)
-            {
-              gw_log->info_hex(pdu->msg, pdu->N_bytes, "TX PDU");
-
-              while(running && (!rrc->rrc_connected() || !rrc->have_drb())) {
-                rrc->rrc_connect();
-                usleep(1000);
-              }
-              
-              if (!running) {
-                break;
-              }
-              
-              // Send PDU directly to PDCP
-              pdu->set_timestamp();
-              ul_tput_bytes += pdu->N_bytes;
-              pdcp->write_sdu(RB_ID_DRB1, pdu);
-              
-              pdu = pool->allocate();
-              idx = 0;
-            }else{
-              idx += N_bytes;
-            }            
-          } 
-        }else{
-          gw_log->error("Failed to read from TUN interface - gw receive thread exiting.\n");
-          gw_log->console("Failed to read from TUN interface - gw receive thread exiting.\n");
-          break;
-        }
+      if (SRSUE_MAX_BUFFER_SIZE_BYTES-SRSUE_BUFFER_HEADER_OFFSET > idx) {
+        N_bytes = read(tun_fd, &pdu->msg[idx], SRSUE_MAX_BUFFER_SIZE_BYTES-SRSUE_BUFFER_HEADER_OFFSET - idx);
       } else {
-        gw_log->error("Could not allocate a PDU\n");
-        gw_log->console("GW could not allocate a PDU\n");
-        break;        
+        gw_log->error("GW pdu buffer full - gw receive thread exiting.\n");
+        gw_log->console("GW pdu buffer full - gw receive thread exiting.\n");
+        break; 
+      }
+      gw_log->debug("Read %d bytes from TUN fd=%d, idx=%d\n", N_bytes, tun_fd, idx);
+      if(N_bytes > 0)
+      {
+        pdu->N_bytes = idx + N_bytes;
+        ip_pkt       = (struct iphdr*)pdu->msg;
+
+        // Warning: Accept only IPv4 packets
+        if (ip_pkt->version == 4) {
+          // Check if entire packet was received
+          if(ntohs(ip_pkt->tot_len) == pdu->N_bytes)
+          {
+            gw_log->info_hex(pdu->msg, pdu->N_bytes, "TX PDU");
+
+            while(running && (!rrc->rrc_connected() || !rrc->have_drb())) {
+              rrc->rrc_connect();
+              usleep(1000);
+            }
+            
+            if (!running) {
+              break;
+            }
+            
+            // Send PDU directly to PDCP
+            pdu->set_timestamp();
+            ul_tput_bytes += pdu->N_bytes;
+            pdcp->write_sdu(RB_ID_DRB1, pdu);
+            
+            do {
+              pdu = pool->allocate();
+              if (!pdu) {
+                usleep(10000);
+              }
+            } while(!pdu); 
+            idx = 0;
+          }else{
+            idx += N_bytes;
+          }            
+        } 
+      }else{
+        gw_log->error("Failed to read from TUN interface - gw receive thread exiting.\n");
+        gw_log->console("Failed to read from TUN interface - gw receive thread exiting.\n");
+        break;
       }
     }
 
