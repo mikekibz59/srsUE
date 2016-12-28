@@ -87,8 +87,12 @@ void log_filter::all_log(srslte::LOG_LEVEL_ENUM level,
       ss << "[" << std::setfill('0') << std::setw(5) << tti << "] ";
 
     ss << msg;
-    if (hex_limit > 0) {
+    
+    if (msg[strlen(msg)-1] != '\n') {
       ss << std::endl; 
+    }
+    
+    if (hex_limit > 0) {
       ss << hex_string(hex, size);
     } 
     str_ptr s_ptr(new std::string(ss.str()));
