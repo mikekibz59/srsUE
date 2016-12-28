@@ -387,9 +387,9 @@ bool sch_subh::is_sdu()
 uint16_t sch_subh::get_c_rnti()
 {
   if (payload) {
-    return (uint16_t) payload[0] | payload[1]<<8;
+    return (uint16_t) payload[0]<<8 | payload[1];
   } else {
-    return (uint16_t) w_payload_ce[0] | w_payload_ce[1]<<8;
+    return (uint16_t) w_payload_ce[0]<<8 | w_payload_ce[1];
   }
 }
 uint64_t sch_subh::get_con_res_id()
