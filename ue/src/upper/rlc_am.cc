@@ -100,7 +100,10 @@ void rlc_am::empty_queue() {
     tx_sdu_queue.read(&buf);
     pool->deallocate(buf);
   }
-
+  for(std::map<uint32_t, rlc_amd_tx_pdu_t>::iterator iter=tx_window.begin(); iter!=tx_window.end(); ++iter) {
+    rlc_amd_tx_pdu_t p = iter->second;
+    pool->deallocate(p.buf);
+  }
 }
 
 void rlc_am::reset()
@@ -602,6 +605,7 @@ int  rlc_am::build_data_pdu(uint8_t *payload, uint32_t nof_bytes)
   {
     log->warning("%s Cannot build a PDU - %d bytes available, %d bytes required for header\n",
                  rb_id_text[lcid], nof_bytes, head_len);
+    pool->deallocate(pdu);
     return 0;
   }
 
