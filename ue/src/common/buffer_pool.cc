@@ -28,6 +28,7 @@
 #include <pthread.h>
 #include "common/buffer_pool.h"
 #include <stdio.h>
+#include <string>
 
 namespace srslte{
 
@@ -67,6 +68,25 @@ buffer_pool::buffer_pool()
   allocated = 0;
 }
 
+std::string now_time()
+{
+  struct timeval rawtime;
+  struct tm * timeinfo;
+  char buffer[64];
+  char us[16];
+  
+  gettimeofday(&rawtime, NULL);
+  timeinfo = localtime(&rawtime.tv_sec);
+  
+  strftime(buffer,64,"%H:%M:%S",timeinfo);
+  strcat(buffer,".");
+  snprintf(us,16,"%06ld",rawtime.tv_usec);
+  strcat(buffer,us);
+  
+  return std::string(buffer);
+}
+
+
 byte_buffer_t* buffer_pool::allocate()
 {
   pthread_mutex_lock(&mutex);
@@ -82,6 +102,8 @@ byte_buffer_t* buffer_pool::allocate()
   byte_buffer_t* b = first_available;
   first_available = b->get_next();
   allocated++;
+  
+  //printf("%s\tallocated=%d\n", now_time().c_str(), allocated);
 
   pthread_mutex_unlock(&mutex);
   return b;
