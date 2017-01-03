@@ -100,10 +100,6 @@ void rlc_am::empty_queue() {
     tx_sdu_queue.read(&buf);
     pool->deallocate(buf);
   }
-  for(std::map<uint32_t, rlc_amd_tx_pdu_t>::iterator iter=tx_window.begin(); iter!=tx_window.end(); ++iter) {
-    rlc_amd_tx_pdu_t p = iter->second;
-    pool->deallocate(p.buf);
-  }
 }
 
 void rlc_am::reset()
