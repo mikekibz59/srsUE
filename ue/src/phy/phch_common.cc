@@ -144,7 +144,7 @@ void phch_common::set_rar_grant(uint32_t tti, uint8_t grant_payload[SRSLTE_RAR_G
 
 bool phch_common::get_pending_rar(uint32_t tti, srslte_dci_rar_grant_t *rar_grant_)
 {
-  if (rar_grant_pending && (tti >= rar_grant_tti || (tti < 10 && rar_grant_pending > 10235))) {
+  if (rar_grant_pending && tti >= rar_grant_tti) {
     if (rar_grant_) {
       rar_grant_pending = false; 
       memcpy(rar_grant_, &rar_grant, sizeof(srslte_dci_rar_grant_t));

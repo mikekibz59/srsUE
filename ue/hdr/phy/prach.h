@@ -60,8 +60,9 @@ namespace srsue {
     void           send(srslte::radio* radio_handler, float cfo, float pathloss, srslte_timestamp_t rx_time);
     float          get_p0_preamble();
     
-  private: 
     static const uint32_t tx_advance_sf = 4; // Number of subframes to advance transmission
+    
+  private: 
     
     LIBLTE_RRC_PRACH_CONFIG_SIB_STRUCT *config;
     phy_args_t                         *args; 

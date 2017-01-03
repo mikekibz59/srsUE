@@ -412,9 +412,7 @@ void phch_recv::run_thread()
             srslte_timestamp_t rx_time, tx_time, tx_time_prach; 
             srslte_ue_sync_get_last_timestamp(&ue_sync, &rx_time); 
             srslte_timestamp_copy(&tx_time, &rx_time);
-            srslte_timestamp_copy(&tx_time_prach, &rx_time);
             srslte_timestamp_add(&tx_time, 0, 4e-3 - time_adv_sec);
-            srslte_timestamp_add(&tx_time_prach, 0, 4e-3);
             worker->set_tx_time(tx_time);
             
             Debug("Settting TTI=%d, tx_mutex=%d to worker %d\n", tti, tx_mutex_cnt, worker->get_id());
@@ -423,8 +421,8 @@ void phch_recv::run_thread()
 
             // Check if we need to TX a PRACH 
             if (prach_buffer->is_ready_to_send(tti)) {
-              srslte_timestamp_t cur_time; 
-              radio_h->get_time(&cur_time);
+              srslte_timestamp_copy(&tx_time_prach, &rx_time);
+              srslte_timestamp_add(&tx_time_prach, 0, prach::tx_advance_sf*1e-3);
               prach_buffer->send(radio_h, ul_dl_factor*metrics.cfo/15000, worker_com->pathloss, tx_time_prach);
               radio_h->tx_end();            
               worker_com->p0_preamble = prach_buffer->get_p0_preamble();
