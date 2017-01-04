@@ -11785,9 +11785,9 @@ LIBLTE_ERROR_ENUM liblte_rrc_unpack_rrc_connection_reestablishment_request_msg(L
         bool ext = liblte_bits_2_value(&msg_ptr, 1);
         
         // UE Identity
-        liblte_rrc_unpack_c_rnti_ie(&msg_ptr, (uint16 *)&con_reest_req->ue_id);
-        liblte_rrc_unpack_phys_cell_id_ie(&msg_ptr, (uint16 *)&con_reest_req->ue_id);
-        liblte_rrc_unpack_short_mac_i_ie(&msg_ptr, (uint16 *)&con_reest_req->ue_id);
+        liblte_rrc_unpack_c_rnti_ie(&msg_ptr, &con_reest_req->ue_id.c_rnti);
+        liblte_rrc_unpack_phys_cell_id_ie(&msg_ptr, &con_reest_req->ue_id.phys_cell_id);
+        liblte_rrc_unpack_short_mac_i_ie(&msg_ptr, &con_reest_req->ue_id.short_mac_i);
 
         // Reestablishment Cause
         con_reest_req->cause = (LIBLTE_RRC_CON_REEST_REQ_CAUSE_ENUM)liblte_bits_2_value(&msg_ptr, 2);
