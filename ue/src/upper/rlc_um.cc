@@ -119,6 +119,7 @@ void rlc_um::empty_queue() {
 
 void rlc_um::reset()
 {
+  pthread_mutex_lock(&mutex);
   vt_us    = 0;
   vr_ur    = 0;
   vr_ux    = 0;
@@ -139,6 +140,7 @@ void rlc_um::reset()
     pool->deallocate(it->second.buf);
   }
   rx_window.clear();
+  pthread_mutex_unlock(&mutex);
 }
 
 rlc_mode_t rlc_um::get_mode()

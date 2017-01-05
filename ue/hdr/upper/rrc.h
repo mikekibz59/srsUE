@@ -132,6 +132,7 @@ private:
   uint32_t n310_cnt, N310; 
   uint32_t n311_cnt, N311; 
   uint32_t t301, t310, t311;
+  uint32_t safe_reset_timer; 
   int ue_category;
     
   
@@ -179,6 +180,7 @@ private:
   void parse_dl_info_transfer(uint32_t lcid, byte_buffer_t *pdu);
 
   // Helpers
+  void          reset_ue(); 
   void          rrc_connection_release();
   void          radio_link_failure(); 
   static void*  start_sib_thread(void *rrc_);

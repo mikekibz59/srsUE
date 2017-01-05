@@ -72,7 +72,7 @@ void rlc_entity::configure(LIBLTE_RRC_RLC_CONFIG_STRUCT *cnfg)
 
 void rlc_entity::reset()
 {
-  rlc->empty_queue();
+  rlc->reset();
   rlc = NULL;
 }
 

@@ -104,6 +104,7 @@ void rlc_am::empty_queue() {
 
 void rlc_am::reset()
 {
+  pthread_mutex_lock(&mutex);
   reordering_timeout.reset();
   if(tx_sdu)
     tx_sdu->reset();
@@ -157,6 +158,7 @@ void rlc_am::reset()
 
   // Drop all messages in RETX queue
   retx_queue.clear();
+  pthread_mutex_unlock(&mutex);
 }
 
 rlc_mode_t rlc_am::get_mode()

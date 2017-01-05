@@ -257,7 +257,8 @@ void gw::run_thread()
             do {
               pdu = pool->allocate();
               if (!pdu) {
-                usleep(10000);
+                printf("Not enough buffers in pool\n");
+                usleep(100000);
               }
             } while(!pdu); 
             idx = 0;

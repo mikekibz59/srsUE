@@ -855,6 +855,8 @@ void rrc::timer_expired(uint32_t timeout_id)
   } else if (timeout_id == t301) {
     rrc_log->info("Timer T301 expired: Going to RRC IDLE");
     rrc_connection_release();
+  } else if (timeout_id == safe_reset_timer) {
+    reset_ue();
   } else {
     rrc_log->error("Timeout from unknown timer id %d\n", timeout_id);
   }
@@ -864,20 +866,27 @@ void rrc::timer_expired(uint32_t timeout_id)
   Helpers
 *******************************************************************************/
 
+void rrc::reset_ue() {
+  phy->reset();
+  mac->reset();
+  rlc->reset();
+  pdcp->reset();  
+  mac->pcch_start_rx();
+  mac_timers->get(safe_reset_timer)->stop();
+  mac_timers->get(safe_reset_timer)->reset();
+  rrc_log->console("RRC Connection released.\n");
+}
+
 void rrc::rrc_connection_release() {
   pthread_mutex_lock(&mutex);
   drb_up = false;
   state  = RRC_STATE_IDLE;
   set_phy_default();
   set_mac_default();
-  phy->reset();
-  mac->reset();
-  rlc->reset();
-  pdcp->reset();
+  mac_timers->get(t311)->run();
   mac_timers->get(t310)->stop();
   mac_timers->get(t311)->stop();
-  rrc_log->console("RRC Connection released.\n");
-  mac->pcch_start_rx();
+  mac_timers->get(safe_reset_timer)->run();
   pthread_mutex_unlock(&mutex);
 }
 
@@ -1462,8 +1471,10 @@ void rrc::set_rrc_default() {
   t301 = mac_timers->get_unique_id();
   t310 = mac_timers->get_unique_id();
   t311 = mac_timers->get_unique_id();
+  safe_reset_timer = mac_timers->get_unique_id();
   mac_timers->get(t310)->set(this, 1000);
   mac_timers->get(t311)->set(this, 1000);
+  mac_timers->get(safe_reset_timer)->set(this, 10);
 }
 
 } // namespace srsue
