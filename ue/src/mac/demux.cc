@@ -151,9 +151,23 @@ void demux::process_sch_pdu(srslte::sch_pdu *pdu_msg)
 {  
   while(pdu_msg->next()) {
     if (pdu_msg->get()->is_sdu()) {
+      bool route_pdu = true; 
+      if (pdu_msg->get()->get_sdu_lcid() == 0) {
+        uint8_t *x = pdu_msg->get()->get_sdu_ptr();
+        uint32_t sum = 0; 
+        for (int i=0;i<pdu_msg->get()->get_payload_size();i++) {
+          sum += x[i];
+        }
+        if (sum == 0) {
+          route_pdu = false; 
+          Warning("Received all zero PDU\n");
+        }
+      }
       // Route logical channel 
-      Info("Delivering PDU for lcid=%d, %d bytes\n", pdu_msg->get()->get_sdu_lcid(), pdu_msg->get()->get_payload_size());
-      rlc->write_pdu(pdu_msg->get()->get_sdu_lcid(), pdu_msg->get()->get_sdu_ptr(), pdu_msg->get()->get_payload_size());      
+      if (route_pdu) {
+        Info("Delivering PDU for lcid=%d, %d bytes\n", pdu_msg->get()->get_sdu_lcid(), pdu_msg->get()->get_payload_size());
+        rlc->write_pdu(pdu_msg->get()->get_sdu_lcid(), pdu_msg->get()->get_sdu_ptr(), pdu_msg->get()->get_payload_size());      
+      }
     } else {
       // Process MAC Control Element
       if (!process_ce(pdu_msg->get())) {
