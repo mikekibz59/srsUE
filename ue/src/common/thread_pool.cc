@@ -217,6 +217,30 @@ thread_pool::worker* thread_pool::wait_worker(uint32_t tti)
   return x; 
 }
 
+thread_pool::worker* thread_pool::wait_worker_nb(uint32_t tti)
+{
+  thread_pool::worker *x; 
+  
+  debug_thread("wait_worker() - enter - tti=%d, state0=%d, state1=%d\n", tti, status[0], status[1]);
+  pthread_mutex_lock(&mutex_queue); 
+  uint32_t id = 0;
+  if (find_finished_worker(tti, &id)) {
+    x = workers[id];
+  } else {
+    x = NULL; 
+  }
+  pthread_mutex_unlock(&mutex_queue);
+  if (running && x) {
+    pthread_mutex_lock(&mutex[id]); 
+    status[id] = WORKER_READY;
+    pthread_mutex_unlock(&mutex[id]); 
+} else {
+    x = NULL; 
+  }  
+  debug_thread("wait_worker() - exit - id=%d\n", id);
+  return x; 
+}
+
 
 void thread_pool::start_worker(uint32_t id) {
   if (id < nof_workers) {

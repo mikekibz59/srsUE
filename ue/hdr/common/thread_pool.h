@@ -71,6 +71,7 @@ public:
   void    stop();
   worker* wait_worker();              
   worker* wait_worker(uint32_t tti);              
+  worker* wait_worker_nb(uint32_t tti);
   void    start_worker(worker*);              
   void    start_worker(uint32_t id);              
   worker* get_worker(uint32_t id);
