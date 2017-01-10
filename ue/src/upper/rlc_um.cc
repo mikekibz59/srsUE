@@ -197,7 +197,10 @@ uint32_t rlc_um::get_total_buffer_state()
 int rlc_um::read_pdu(uint8_t *payload, uint32_t nof_bytes)
 {
   log->debug("MAC opportunity - %d bytes\n", nof_bytes);
-  return build_data_pdu(payload, nof_bytes);
+  pthread_mutex_lock(&mutex);
+  int r = build_data_pdu(payload, nof_bytes);
+  pthread_mutex_unlock(&mutex);
+  return r; 
 }
 
 void rlc_um::write_pdu(uint8_t *payload, uint32_t nof_bytes)
