@@ -291,6 +291,7 @@ void ul_harq_entity::ul_harq_process::generate_retx(uint32_t tti_tx, mac_interfa
     if (grant->rv) {
       current_irv = irv_of_rv[grant->rv%4];
     }
+    memcpy(&cur_grant, grant, sizeof(mac_interface_phy::mac_grant_t));
     harq_feedback = false; 
     Info("UL %d:  Adaptive retx=%d, RV=%d, TBS=%d\n", 
          pid, current_tx_nb, get_rv(), grant->n_bytes);
