@@ -464,8 +464,8 @@ void rrc::send_con_restablish_request()
   ul_ccch_msg.msg.rrc_con_reest_req.cause = LIBLTE_RRC_CON_REEST_REQ_CAUSE_OTHER_FAILURE;
   liblte_rrc_pack_ul_ccch_msg(&ul_ccch_msg, (LIBLTE_BIT_MSG_STRUCT*)&bit_buf);
 
-  rrc_log->info("Initiating RRC Connection Restablishment Procedure\n");
-  rrc_log->console("RRC Connection Restablishment\n");
+  rrc_log->info("Initiating RRC Connection Reestablishment Procedure\n");
+  rrc_log->console("RRC Connection Reestablishment\n");
   mac_timers->get(t310)->stop();
   mac_timers->get(t311)->reset();
   mac_timers->get(t311)->run();
@@ -485,7 +485,7 @@ void rrc::send_con_restablish_request()
   mac_timers->get(t301)->reset();
   mac_timers->get(t301)->run();
   mac_timers->get(t311)->stop();
-  rrc_log->info("Cell Selection finished. Initiating transmission of RRC Connection Restablishment Request\n");
+  rrc_log->info("Cell Selection finished. Initiating transmission of RRC Connection Reestablishment Request\n");
   
   // Byte align and pack the message bits for PDCP
   if((bit_buf.N_bits % 8) != 0)
@@ -892,7 +892,7 @@ void rrc::rrc_connection_release() {
 
 void rrc::test_con_restablishment()
 {
-  printf("Testing connection Restablishment\n"); 
+  printf("Testing connection Reestablishment\n"); 
   send_con_restablish_request();
 }
 
@@ -1268,7 +1268,7 @@ void rrc::handle_con_setup(LIBLTE_RRC_CONNECTION_SETUP_STRUCT *setup)
   apply_rr_config_dedicated(&setup->rr_cnfg);  
 }
 
-/* Reception of RRCConnectionRestablishment by the UE 5.3.7.5 */
+/* Reception of RRCConnectionReestablishment by the UE 5.3.7.5 */
 void rrc::handle_con_reest(LIBLTE_RRC_CONNECTION_REESTABLISHMENT_STRUCT *setup) 
 {
   mac_timers->get(t301)->stop();
