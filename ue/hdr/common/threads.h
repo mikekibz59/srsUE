@@ -26,6 +26,9 @@
 
 #include <pthread.h>
 #include <stdint.h>
+#include <sys/timerfd.h>
+#include <unistd.h>
+#include <stdio.h>
 
 #ifdef __cplusplus
     extern "C" {
@@ -66,7 +69,77 @@ private:
   static void *thread_function_entry(void *_this)  { ((thread*) _this)->run_thread(); return NULL; }
   pthread_t _thread;
 };
-  
+
+class periodic_thread : public thread 
+{
+public:
+  void start_periodic(int period_us_, int priority = -1) {
+    period_us = period_us_; 
+    start(priority);
+  }
+protected:   
+  virtual void run_period() = 0; 
+private:
+  int wakeups_missed; 
+  int timer_fd; 
+  int period_us; 
+  void run_thread() {
+    if (make_periodic()) {
+      return;
+    }
+    while(1) {
+      run_period();
+      wait_period();
+    }
+  }
+  int make_periodic() {
+    int ret = -1; 
+    unsigned int ns;
+    unsigned int sec;
+    struct itimerspec itval;
+
+    /* Create the timer */
+    ret = timerfd_create (CLOCK_MONOTONIC, 0);
+    wakeups_missed = 0;
+    timer_fd = ret;
+    if (ret > 0) {
+      /* Make the timer periodic */
+      sec = period_us/1e6;
+      ns = (period_us - (sec * 1000000)) * 1000;
+      itval.it_interval.tv_sec = sec;
+      itval.it_interval.tv_nsec = ns;
+      itval.it_value.tv_sec = sec;
+      itval.it_value.tv_nsec = ns;
+      ret = timerfd_settime (timer_fd, 0, &itval, NULL); 
+      if (ret < 0) {
+        perror("timerfd_settime");
+      }
+    } else {
+      perror("timerfd_create");
+    }
+    return ret;
+  }
+  void wait_period() {
+    unsigned long long missed;
+    int ret;
+
+    /* Wait for the next timer event. If we have missed any the
+        number is written to "missed" */
+    ret = read (timer_fd, &missed, sizeof (missed));
+    if (ret == -1)
+    {
+      perror ("read timer");
+      return;
+    }
+
+    /* "missed" should always be >= 1, but just to be sure, check it is not 0 anyway */
+    if (missed > 0) {
+      wakeups_missed += (missed - 1);
+    }
+  }
+}; 
+
+
 
 #endif // THREADS_
 

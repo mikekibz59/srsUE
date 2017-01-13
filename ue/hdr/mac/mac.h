@@ -172,19 +172,15 @@ private:
 
 
   /* Class to run upper-layer timers with normal priority */
-  class upper_timers : public thread {
+  class upper_timers : public periodic_thread {
   public: 
-    upper_timers() : timers_db(MAC_NOF_UPPER_TIMERS),ttisync(10240) {start();}
-    void tti_clock();
-    void stop();
+    upper_timers();
     void reset();
     srslte::timers::timer* get(uint32_t timer_id);
     uint32_t get_unique_id();
   private:
-    void run_thread();
+    void run_period();
     srslte::timers  timers_db;
-    srslte::tti_sync_cv     ttisync;
-    bool running; 
   };
   upper_timers   upper_timers_thread; 
 

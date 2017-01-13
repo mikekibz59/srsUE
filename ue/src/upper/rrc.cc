@@ -847,13 +847,13 @@ void rrc::parse_dl_dcch(uint32_t lcid, byte_buffer_t *pdu)
 void rrc::timer_expired(uint32_t timeout_id)
 {
   if (timeout_id == t310) {
-    rrc_log->info("Timer T310 expired: Radio Link Failure");
+    rrc_log->info("Timer T310 expired: Radio Link Failure\n");
     radio_link_failure();
   } else if (timeout_id == t311) {
-    rrc_log->info("Timer T311 expired: Going to RRC IDLE");
+    rrc_log->info("Timer T311 expired: Going to RRC IDLE\n");
     rrc_connection_release();
   } else if (timeout_id == t301) {
-    rrc_log->info("Timer T301 expired: Going to RRC IDLE");
+    rrc_log->info("Timer T301 expired: Going to RRC IDLE\n");
     rrc_connection_release();
   } else if (timeout_id == safe_reset_timer) {
     reset_ue();
@@ -869,8 +869,8 @@ void rrc::timer_expired(uint32_t timeout_id)
 void rrc::reset_ue() {
   phy->reset();
   mac->reset();
-  rlc->reset();
   pdcp->reset();  
+  rlc->reset();
   mac->pcch_start_rx();
   mac_timers->get(safe_reset_timer)->stop();
   mac_timers->get(safe_reset_timer)->reset();
@@ -886,7 +886,7 @@ void rrc::rrc_connection_release() {
   mac_timers->get(t311)->run();
   mac_timers->get(t310)->stop();
   mac_timers->get(t311)->stop();
-  mac_timers->get(safe_reset_timer)->run();
+  reset_ue();
   pthread_mutex_unlock(&mutex);
 }
 

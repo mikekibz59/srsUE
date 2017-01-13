@@ -83,7 +83,7 @@ public:
   }
   
   bool new_subh() {
-    if (nof_subheaders < max_subheaders - 1) {
+    if (nof_subheaders < max_subheaders - 1 && rem_len > 0) {
       nof_subheaders++;
       next();
       return true; 

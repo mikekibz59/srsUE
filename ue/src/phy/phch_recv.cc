@@ -383,9 +383,6 @@ void phch_recv::run_thread()
           log_h->console("Timeout while synchronizing SFN\n");
           log_h->warning("Timeout while synchronizing SFN\n");
         }
-        if (cell_is_set && !(sync_sfn_cnt%10)) {
-          rrc->out_of_sync();
-        }
        break;
       case SYNC_DONE:        
         tti = (tti+1)%10240;        

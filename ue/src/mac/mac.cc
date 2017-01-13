@@ -86,7 +86,7 @@ void mac::stop()
 {
   started = false;   
   ttisync.increase();
-  upper_timers_thread.stop();
+  upper_timers_thread.thread_cancel();
   pdu_process_thread.stop();
   wait_thread_finish();
 }
@@ -187,9 +187,7 @@ void mac::run_thread() {
         Debug("Pre-computing C-RNTI scrambling sequences for C-RNTI=0x%x\n", uernti.crnti);
         ((phy*) phy_h)->set_crnti(uernti.crnti);
         signals_pregenerated = true; 
-      }
-      
-      timers_db.step_all();          
+      }      
     }
   }  
 }
@@ -230,7 +228,6 @@ void mac::pcch_stop_rx()
 void mac::tti_clock(uint32_t tti)
 {
   ttisync.increase();
-  upper_timers_thread.tti_clock();
 }
 
 void mac::bch_decoded_ok(uint8_t* payload, uint32_t len)
@@ -456,16 +453,17 @@ void mac::get_metrics(mac_metrics_t &m)
  * Class to run upper-layer timers with normal priority 
  *
  *******************************************************/
-void mac::upper_timers::run_thread()
+
+mac::upper_timers::upper_timers() : timers_db(MAC_NOF_UPPER_TIMERS) 
 {
-  running=true; 
-  ttisync.set_producer_cntr(0);
-  ttisync.resync();
-  while(running) {
-    ttisync.wait();
-    timers_db.step_all();
-  }
+  start_periodic(1000, MAC_MAIN_THREAD_PRIO+1);  
 }
+
+void mac::upper_timers::run_period()
+{
+  timers_db.step_all();
+}
+  
 srslte::timers::timer* mac::upper_timers::get(uint32_t timer_id)
 {
   return timers_db.get(timer_id%MAC_NOF_UPPER_TIMERS);
@@ -476,20 +474,9 @@ uint32_t mac::upper_timers::get_unique_id()
   return timers_db.get_unique_id();
 }
 
-void mac::upper_timers::stop()
-{
-  running=false;
-  ttisync.increase();
-  wait_thread_finish();
-}
 void mac::upper_timers::reset()
 {
   timers_db.stop_all();
-}
-
-void mac::upper_timers::tti_clock()
-{
-  ttisync.increase();
 }
 
 

@@ -64,7 +64,7 @@ public:
       return (counter < timeout) && running; 
     }
     bool is_expired() {
-      return counter == timeout || !running; 
+      return counter >= timeout || !running; 
     }
     uint32_t get_timeout() {
       return timeout; 
@@ -77,7 +77,9 @@ public:
         counter++; 
         if (is_expired()) {
           running = false; 
-          callback->timer_expired(id); 
+          if (callback) {
+            callback->timer_expired(id); 
+          }
         }        
       }
     }
