@@ -223,14 +223,15 @@ void ue::stop()
 {
   if(started)
   {
-    usim.stop();
-    gw.stop();
-    nas.stop();
-    rrc.stop();
-    pdcp.stop();
-    rlc.stop();
-    mac.stop();
+    // Must stop from bottom to top
     phy.stop();
+    mac.stop();
+    rlc.stop();
+    pdcp.stop();
+    rrc.stop();
+    nas.stop();
+    gw.stop();
+    usim.stop();
  
     usleep(1e5);
     if(args->pcap.enable)

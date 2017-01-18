@@ -104,6 +104,9 @@ void rlc_am::empty_queue() {
 
 void rlc_am::reset()
 {
+  // Empty tx_sdu_queue before locking the mutex 
+  empty_queue();
+
   pthread_mutex_lock(&mutex);
   reordering_timeout.reset();
   if(tx_sdu)
@@ -127,8 +130,6 @@ void rlc_am::reset()
 
   poll_received = false;
   do_status     = false;
-
-  empty_queue();
 
   // Drop all messages in RX segments
   std::map<uint32_t, rlc_amd_rx_pdu_segments_t>::iterator rxsegsit;

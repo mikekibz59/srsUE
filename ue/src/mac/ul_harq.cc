@@ -357,7 +357,7 @@ void ul_harq_entity::ul_harq_process::generate_tx(uint32_t tti_tx, mac_interface
     max_retx = liblte_rrc_max_harq_tx_num[harq_entity->mac_cfg->main.ulsch_cnfg.max_harq_tx];
   }
   if (current_tx_nb >= max_retx) {
-    Info("UL %d:  Maximum number of ReTX for Msg3 reached (%d). Discarting TB.\n", pid, max_retx);
+    Info("UL %d:  Maximum number of ReTX reached (%d). Discarting TB.\n", pid, max_retx);
     reset();          
     action->expect_ack = false;
   }

@@ -119,6 +119,10 @@ void rlc_um::empty_queue() {
 
 void rlc_um::reset()
 {
+  
+  // Empty tx_sdu_queue before locking the mutex 
+  empty_queue();
+
   pthread_mutex_lock(&mutex);
   vt_us    = 0;
   vr_ur    = 0;
@@ -131,8 +135,6 @@ void rlc_um::reset()
     tx_sdu->reset();
   if(mac_timers)
     mac_timers->get(reordering_timeout_id)->stop();
-
-  empty_queue();
   
   // Drop all messages in RX window
   std::map<uint32_t, rlc_umd_pdu_t>::iterator it;

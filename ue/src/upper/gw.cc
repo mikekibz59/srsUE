@@ -67,7 +67,8 @@ void gw::stop()
     running = false;
     if(if_up)
     {
-      thread_cancel();
+      // Wait thread to exit gracefully otherwise might leave a mutex locked
+      //thread_cancel();
       wait_thread_finish();
     }
 
