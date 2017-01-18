@@ -64,7 +64,7 @@ public:
       return (counter < timeout) && running; 
     }
     bool is_expired() {
-      return counter >= timeout || !running; 
+      return callback && (counter >= timeout || !running); 
     }
     uint32_t get_timeout() {
       return timeout; 

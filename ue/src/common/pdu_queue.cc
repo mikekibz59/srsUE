@@ -127,6 +127,7 @@ bool pdu_queue::process_pdus()
       }
     } while(buff);
     if (cnt > 20) {
+      log_h->warning("Dispatched %d packets for PID=%d\n", cnt, i);
       log_h->console("Warning dispatched %d packets for PID=%d\n", cnt, i);
     }
   }

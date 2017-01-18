@@ -886,7 +886,9 @@ void rrc::rrc_connection_release() {
   mac_timers->get(t311)->run();
   mac_timers->get(t310)->stop();
   mac_timers->get(t311)->stop();
-  reset_ue();
+  mac_timers->get(safe_reset_timer)->stop();
+  mac_timers->get(safe_reset_timer)->reset();
+  mac_timers->get(safe_reset_timer)->run();
   pthread_mutex_unlock(&mutex);
 }
 

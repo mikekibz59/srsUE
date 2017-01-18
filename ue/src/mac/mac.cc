@@ -47,7 +47,8 @@ mac::mac() : ttisync(10240),
 {
   started = false;  
   pcap    = NULL;   
-  signals_pregenerated = false; 
+  signals_pregenerated = false;  
+  bzero(&metrics, sizeof(mac_metrics_t));
 }
   
 bool mac::init(phy_interface_mac *phy, rlc_interface_mac *rlc, rrc_interface_mac *rrc, srslte::log *log_h_)
