@@ -1220,7 +1220,7 @@ void rrc::apply_mac_config_dedicated(LIBLTE_RRC_MAC_MAIN_CONFIG_STRUCT *mac_cnfg
   // Setup MAC configuration 
   mac->set_config_main(&default_cfg);              
 
-  rrc_log->info("Set MAC main config: harq-MaxReTX-UL=%d, harq-MaxReTX-DL=%d, bsr-TimerReTX=%d, bsr-TimerPeriodic=%d\n",
+  rrc_log->info("Set MAC main config: harq-MaxReTX=%d, bsr-TimerReTX=%d, bsr-TimerPeriodic=%d\n",
                 liblte_rrc_max_harq_tx_num[default_cfg.ulsch_cnfg.max_harq_tx],
                 liblte_rrc_retransmission_bsr_timer_num[default_cfg.ulsch_cnfg.retx_bsr_timer],
                 liblte_rrc_periodic_bsr_timer_num[default_cfg.ulsch_cnfg.periodic_bsr_timer]);
