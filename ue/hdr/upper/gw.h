@@ -67,6 +67,7 @@ private:
   rrc_interface_gw   *rrc;
   ue_interface       *ue;
   bool                running;
+  bool                run_enable;
   int32               tun_fd;
   struct ifreq        ifr;
   int32               sock;

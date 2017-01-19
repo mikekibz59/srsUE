@@ -53,7 +53,7 @@ void gw::init(pdcp_interface_gw *pdcp_, rrc_interface_gw *rrc_, ue_interface *ue
   rrc     = rrc_;
   ue      = ue_;
   gw_log  = gw_log_;
-  running = true;
+  run_enable = true;
 
   gettimeofday(&metrics_time[1], NULL);
   dl_tput_bytes = 0;
@@ -62,13 +62,20 @@ void gw::init(pdcp_interface_gw *pdcp_, rrc_interface_gw *rrc_, ue_interface *ue
 
 void gw::stop()
 {
-  if(running)
+  if(run_enable)
   {
-    running = false;
+    run_enable = false;
     if(if_up)
     {
       // Wait thread to exit gracefully otherwise might leave a mutex locked
-      //thread_cancel();
+      int cnt=0;
+      while(running && cnt<100) {
+        usleep(10000);
+        cnt++;
+      }
+      if (running) {
+        thread_cancel();
+      }
       wait_thread_finish();
     }
 
@@ -217,9 +224,10 @@ void gw::run_thread()
     int32           N_bytes;
     byte_buffer_t  *pdu = pool->allocate();
 
-    gw_log->info("GW IP packet receiver thread running\n");
+    gw_log->info("GW IP packet receiver thread run_enable\n");
 
-    while(running)
+    running = true; 
+    while(run_enable)
     {
       if (SRSUE_MAX_BUFFER_SIZE_BYTES-SRSUE_BUFFER_HEADER_OFFSET > idx) {
         N_bytes = read(tun_fd, &pdu->msg[idx], SRSUE_MAX_BUFFER_SIZE_BYTES-SRSUE_BUFFER_HEADER_OFFSET - idx);
@@ -241,12 +249,12 @@ void gw::run_thread()
           {
             gw_log->info_hex(pdu->msg, pdu->N_bytes, "TX PDU");
 
-            while(running && (!rrc->rrc_connected() || !rrc->have_drb())) {
+            while(run_enable && (!rrc->rrc_connected() || !rrc->have_drb())) {
               rrc->rrc_connect();
               usleep(1000);
             }
             
-            if (!running) {
+            if (!run_enable) {
               break;
             }
             
@@ -273,7 +281,7 @@ void gw::run_thread()
         break;
       }
     }
-
+    running = false; 
     gw_log->info("GW IP receiver thread exiting.\n");
 }
 
