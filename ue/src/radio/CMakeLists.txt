@@ -18,4 +18,4 @@
 #
 
 add_library(srsue_radio radio.cc)
-target_link_libraries(srsue_radio ${SRSLTE_LIBRARY})
+target_link_libraries(srsue_radio ${SRSLTE_LIBRARIES})
