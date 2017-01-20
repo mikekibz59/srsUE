@@ -63,19 +63,19 @@ endif( ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang") OR ("${CMAKE_C_COMPILER_ID}" 
 if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -std=c++03")
 else(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
-  if(${CMAKE_BUILD_TYPE} STREQUAL "Debug-san")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O1 -std=c++03 -fsanitize=address -fno-omit-frame-pointer")
-  else(${CMAKE_BUILD_TYPE} STREQUAL "Debug-san")
-    find_package(SSE)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -std=c++03")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -std=c++03")
+  find_package(SSE)
+  if (HAVE_AVX2)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -mfpmath=sse -mavx2 -Ofast -funroll-loops -DLV_HAVE_AVX -DLV_HAVE_SSE")
+  elseif (HAVE_AVX2)
     if(HAVE_AVX)
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -mfpmath=sse -mavx -DLV_HAVE_AVX -DLV_HAVE_SSE")      
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -mfpmath=sse -mavx -Ofast -funroll-loops -DLV_HAVE_AVX -DLV_HAVE_SSE")
     elseif(HAVE_SSE)
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -mfpmath=sse -msse4.1 -DLV_HAVE_SSE")
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -mfpmath=sse -msse4.1 -Ofast -funroll-loops -DLV_HAVE_SSE")
     endif(HAVE_AVX)
-  endif(${CMAKE_BUILD_TYPE} STREQUAL "Debug-san")
+  endif (HAVE_AVX2)
+  
 endif(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
-
 ########################################################################
 # Find boost
 ########################################################################
