@@ -63,7 +63,6 @@ public:
 
   void get_metrics(phy_metrics_t &m);
   
-  void set_crnti(uint16_t rnti);
   
   
   static uint32_t tti_to_SFN(uint32_t tti);
@@ -85,6 +84,9 @@ public:
   void    sync_start(); 
   void    sync_stop();
 
+  /* Sets a C-RNTI allowing the PHY to pregenerate signals if necessary */
+  void set_crnti(uint16_t rnti);
+  
   /* Instructs the PHY to configure using the parameters written by set_param() */
   void    configure_prach_params();
   
@@ -125,7 +127,6 @@ public:
   void     get_current_cell(srslte_cell_t *cell);
   
   void    start_plot();
-  void    start_channel_emulator(const char *filename, int *path_taps, int nof_paths, int nof_coeffs, int nof_samples, int nof_tti);
     
 private:
     

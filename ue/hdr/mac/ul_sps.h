@@ -28,7 +28,6 @@
 #define ULSPS_H
 
 #include "common/log.h"
-#include "phy/phy.h"
 #include "common/timers.h"
 
 /* Uplink Semi-Persistent schedulign (Section 5.10.2) */

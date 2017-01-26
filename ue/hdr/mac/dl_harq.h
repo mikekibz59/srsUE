@@ -28,7 +28,6 @@
 #define DL_HARQ_H
 
 #include "common/log.h"
-#include "phy/phy.h"
 #include "common/timers.h"
 #include "mac/demux.h"
 #include "mac/dl_sps.h"

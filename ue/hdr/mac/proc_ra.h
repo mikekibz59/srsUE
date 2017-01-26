@@ -29,7 +29,6 @@
 
 #include <stdint.h>
 
-#include "phy/phy.h"
 #include "common/log.h"
 #include "common/qbuff.h"
 #include "common/timers.h"

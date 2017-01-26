@@ -186,7 +186,7 @@ void mac::run_thread() {
         
         // Pregenerate UL signals and C-RNTI scrambling sequences
         Debug("Pre-computing C-RNTI scrambling sequences for C-RNTI=0x%x\n", uernti.crnti);
-        ((phy*) phy_h)->set_crnti(uernti.crnti);
+        phy_h->set_crnti(uernti.crnti);
         signals_pregenerated = true; 
       }      
     }

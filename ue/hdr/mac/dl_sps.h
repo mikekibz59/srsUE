@@ -27,8 +27,8 @@
 #ifndef DL_SPS_H
 #define DL_SPS_H
 
+#include "common/mac_interface.h"
 #include "common/log.h"
-#include "phy/phy.h"
 #include "common/timers.h"
 
 /* Downlink Semi-Persistent schedulign (Section 5.10.1) */

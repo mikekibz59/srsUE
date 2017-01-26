@@ -27,7 +27,8 @@
 #ifndef DEMUX_H
 #define DEMUX_H
 
-#include "phy/phy.h"
+#include "common/interfaces.h"
+#include "common/phy_interface.h"
 #include "common/mac_interface.h"
 #include "common/pdu_queue.h"
 #include "common/log.h"

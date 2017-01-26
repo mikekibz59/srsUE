@@ -28,8 +28,9 @@
 #define PROCSR_H
 
 #include <stdint.h>
-
-#include "phy/phy.h"
+#include "common/phy_interface.h"
+#include "common/interfaces.h"
+#include "common/log.h"
 
 /* Scheduling Request procedure as defined in 5.4.4 of 36.321 */
 

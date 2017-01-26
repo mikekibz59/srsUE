@@ -72,6 +72,9 @@ public:
   virtual void sync_start() = 0; 
   virtual void sync_stop() = 0;
   
+  /* Sets a C-RNTI allowing the PHY to pregenerate signals if necessary */
+  virtual void set_crnti(uint16_t rnti) = 0; 
+  
   virtual void prach_send(uint32_t preamble_idx, int allowed_subframe, float target_power_dbm) = 0;  
   virtual int  prach_tx_tti() = 0; 
   

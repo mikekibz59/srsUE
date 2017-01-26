@@ -28,7 +28,6 @@
 #define MAC_H
 
 #include "common/log.h"
-#include "phy/phy.h"
 #include "mac/dl_harq.h"
 #include "mac/ul_harq.h"
 #include "common/timers.h"
@@ -40,6 +39,7 @@
 #include "mac/mux.h"
 #include "mac/demux.h"
 #include "common/mac_pcap.h"
+#include "common/phy_interface.h"
 #include "common/mac_interface.h"
 #include "common/tti_sync_cv.h"
 #include "common/threads.h"
