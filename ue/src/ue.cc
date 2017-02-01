@@ -231,7 +231,8 @@ void ue::stop()
     rlc.stop();
     mac.stop();
     phy.stop();
- 
+    radio.stop();
+    
     usleep(1e5);
     if(args->pcap.enable)
     {

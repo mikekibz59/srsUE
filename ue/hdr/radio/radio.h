@@ -78,6 +78,7 @@ namespace srslte {
       };
       
       bool init(char *args = NULL, char *devname = NULL);
+      void stop(); 
       bool start_agc(bool tx_gain_same_rx);
       
       void set_burst_preamble(double preamble_us);
