@@ -29,6 +29,8 @@
 
 #include <pthread.h>
 
+#include <vector>
+
 #include "common/qbuff.h"
 #include "common/log.h"
 #include "common/mac_interface.h"
@@ -38,6 +40,14 @@
 
 /* Logical Channel Multiplexing and Prioritization + Msg3 Buffer */   
 
+
+typedef struct {
+  uint32_t      id; 
+  int           Bj;
+  int           PBR; // -1 sets to infinity
+  uint32_t      BSD;
+  uint32_t      priority;    
+} lchid_t; 
 
 namespace srsue {
   
@@ -65,19 +75,13 @@ public:
 private:  
   bool     pdu_move_to_msg3(uint32_t pdu_sz);
   bool     allocate_sdu(uint32_t lcid, srslte::sch_pdu *pdu, int max_sdu_sz, uint32_t *sdu_sz);
+  lchid_t* find_lchid(uint32_t lch_id);
   
-  // There is a known bug in the code and NOF_UL_LCH must match the maximum priority (16) + 1
-  const static int NOF_UL_LCH = 17; 
   const static int MIN_RLC_SDU_LEN = 0; 
   const static int MAX_NOF_SUBHEADERS = 20; 
   const static int MAX_HARQ_PROC = 8; 
   
-  int64_t       Bj[NOF_UL_LCH];
-  int           PBR[NOF_UL_LCH]; // -1 sets to infinity
-  uint32_t      BSD[NOF_UL_LCH];
-  uint32_t      priority[NOF_UL_LCH];
-  uint32_t      priority_sorted[NOF_UL_LCH];
-  uint32_t      lchid_sorted[NOF_UL_LCH];
+  std::vector<lchid_t> lch; 
   
   // Keep track of the PIDs that transmitted BSR reports 
   bool pid_has_bsr[MAX_HARQ_PROC]; 

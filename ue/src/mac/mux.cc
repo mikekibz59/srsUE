@@ -32,6 +32,7 @@
 #include "mac/mux.h"
 #include "mac/mac.h"
 
+#include <algorithm>
 
 namespace srsue {
 
@@ -42,13 +43,6 @@ mux::mux() : pdu_msg(MAX_NOF_SUBHEADERS)
   pthread_mutex_init(&mutex, NULL);
   msg3_has_been_transmitted = false; 
   
-  for (int i=0;i<NOF_UL_LCH;i++) {
-   priority[i]        = i; 
-   priority_sorted[i] = i; 
-   PBR[i]             = -1; // -1 is infinite 
-   BSD[i]             = 10;
-   lchid_sorted[i]    = i; 
-  }  
   pending_crnti_ce = 0;
 }
 
@@ -58,20 +52,19 @@ void mux::init(rlc_interface_mac *rlc_, srslte::log *log_h_, bsr_proc *bsr_proce
   rlc        = rlc_;
   bsr_procedure = bsr_procedure_;
   phr_procedure = phr_procedure_;
+  reset();
 }
 
 void mux::reset()
 {
-  for (int i=0;i<NOF_UL_LCH;i++) {
-    Bj[i] = 0; 
-  }
+  lch.clear();
   pending_crnti_ce = 0;
 }
 
 bool mux::is_pending_any_sdu()
 {
-  for (int i=0;i<NOF_UL_LCH;i++) {
-    if (rlc->get_buffer_state(i)) {
+  for (int i=0;i<lch.size();i++) {
+    if (rlc->get_buffer_state(lch[i].id)) {
       return true; 
     }
   }
@@ -82,41 +75,41 @@ bool mux::is_pending_sdu(uint32_t lch_id) {
   return rlc->get_buffer_state(lch_id)>0;  
 }
 
+lchid_t* mux::find_lchid(uint32_t lcid) 
+{
+  for (int i=0;i<lch.size();i++) {
+    if(lch[i].id == lcid) {
+      return &lch[i];
+    }
+  }
+  return NULL; 
+}
+
+bool sortPriority(lchid_t u1, lchid_t u2) {
+  return u1.priority < u2.priority; 
+}
+
 void mux::set_priority(uint32_t lch_id, uint32_t new_priority, int set_PBR, uint32_t set_BSD)
 {
-  if (lch_id < NOF_UL_LCH) {
-    if (new_priority < NOF_UL_LCH) {
-      priority[lch_id] = new_priority;
-      PBR[lch_id]      = set_PBR;
-      BSD[lch_id]      = set_BSD; 
-      
-      // Insert priority in sorted idx array
-      int new_index = 0; 
-      while(new_index < NOF_UL_LCH && new_priority > priority_sorted[new_index]) {
-        new_index++; 
-      }
-      int old_index = 0; 
-      while(old_index < NOF_UL_LCH && lch_id != lchid_sorted[old_index]) {
-        old_index++;
-      }
-      if (new_index ==  NOF_UL_LCH) {
-        Error("Can't find LCID=%d in sorted list\n", lch_id);
-        return;
-      }
-      // Replace goes in one direction or the other 
-      int add=new_index>old_index?1:-1;
-      for (int i=old_index;i!=new_index;i+=add) {
-        priority_sorted[i] = priority_sorted[i+add];
-        lchid_sorted[i]    = lchid_sorted[i+add];
-      }
-      priority_sorted[new_index] = new_priority;
-      lchid_sorted[new_index]    = lch_id; 
-    } else {
-      Error("Invalid priority %d: must be in 1..16\n", new_priority);
-    }
+  lchid_t *ch_ptr = find_lchid(lch_id);
+    
+  // Create new channel if it does not exist
+  if (ch_ptr == NULL) {
+    lchid_t ch; 
+    ch.id       = lch_id; 
+    ch.priority = new_priority; 
+    ch.BSD      = set_BSD; 
+    ch.PBR      = set_PBR; 
+    ch.Bj       = 0; 
+    lch.push_back(ch);
   } else {
-    Error("Invalid lch_id %d: must be in 0..15\n", lch_id);
+    ch_ptr->priority = new_priority; 
+    ch_ptr->PBR      = set_PBR; 
+    ch_ptr->BSD      = set_BSD;     
   }
+  
+  // sort according to priority (increasing is lower priority)
+  std::sort(lch.begin(), lch.end(), sortPriority); 
 }
 
 srslte::sch_subh::cetype bsr_format_convert(bsr_proc::bsr_format_t format) {
@@ -144,13 +137,13 @@ uint8_t* mux::pdu_get(uint8_t *payload, uint32_t pdu_sz, uint32_t tx_tti, uint32
   pthread_mutex_lock(&mutex);
     
   // Update Bj
-  for (int i=0;i<NOF_UL_LCH;i++) {    
+  for (int i=0;i<lch.size();i++) {    
     // Add PRB unless it's infinity 
-    if (PBR[i] >= 0) {
-      Bj[i] += PBR[i];
+    if (lch[i].PBR >= 0) {
+      lch[i].Bj += lch[i].PBR;
     }
-    if (Bj[i] >= BSD[i]) {
-      Bj[i] = BSD[i]; 
+    if (lch[i].Bj >= lch[i].BSD) {
+      lch[i].Bj = lch[i].BSD; 
     }    
   }
   
@@ -192,22 +185,21 @@ uint8_t* mux::pdu_get(uint8_t *payload, uint32_t pdu_sz, uint32_t tx_tti, uint32
   // data from any Logical Channel, except data from UL-CCCH;  
   // first only those with positive Bj
   uint32_t sdu_sz   = 0; 
-  for (int i=1;i<NOF_UL_LCH;i++) {
-    uint32_t lcid = lchid_sorted[i];
-    if (lcid != 0) {
+  for (int i=0;i<lch.size();i++) {
+    if (lch[i].id != 0) {
       bool res = true; 
-      while ((Bj[lcid] > 0 || PBR[lcid] < 0) && res) {
-        res = allocate_sdu(lcid, &pdu_msg, (PBR[lcid]<0)?-1:Bj[lcid], &sdu_sz);
-        if (res && PBR[lcid] >= 0) {
-          Bj[lcid] -= sdu_sz;         
+      while ((lch[i].Bj > 0 || lch[i].PBR < 0) && res) {
+        res = allocate_sdu(lch[i].id, &pdu_msg, (lch[i].PBR<0)?-1:lch[i].Bj, &sdu_sz);
+        if (res && lch[i].PBR >= 0) {
+          lch[i].Bj -= sdu_sz;         
         }
       }
     }
   }
 
   // If resources remain, allocate regardless of their Bj value
-  for (int i=1;i<NOF_UL_LCH;i++) {
-    while (allocate_sdu(lchid_sorted[i], &pdu_msg, -1, NULL));   
+  for (int i=0;i<lch.size();i++) {
+    while (allocate_sdu(lch[i].id, &pdu_msg, -1, NULL));   
   }
 
   if (!regular_bsr) {
