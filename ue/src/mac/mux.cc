@@ -75,26 +75,36 @@ bool mux::is_pending_sdu(uint32_t lch_id) {
   return rlc->get_buffer_state(lch_id)>0;  
 }
 
-lchid_t* mux::find_lchid(uint32_t lcid) 
+int mux::find_lchid(uint32_t lcid) 
 {
   for (int i=0;i<lch.size();i++) {
     if(lch[i].id == lcid) {
-      return &lch[i];
+      return i;
     }
   }
-  return NULL; 
+  return -1; 
 }
 
 bool sortPriority(lchid_t u1, lchid_t u2) {
   return u1.priority < u2.priority; 
 }
 
+void mux::clear_lch(uint32_t lch_id)
+{
+  int pos = find_lchid(lch_id);
+  if (pos >= 0) {
+    lch.erase(lch.begin()+pos);
+  } else {
+    Error("Deleting logical channel id %d. Does not exist\n", lch_id);
+  }
+}
+
 void mux::set_priority(uint32_t lch_id, uint32_t new_priority, int set_PBR, uint32_t set_BSD)
 {
-  lchid_t *ch_ptr = find_lchid(lch_id);
+  int pos = find_lchid(lch_id);
     
   // Create new channel if it does not exist
-  if (ch_ptr == NULL) {
+  if (pos < 0) {
     lchid_t ch; 
     ch.id       = lch_id; 
     ch.priority = new_priority; 
@@ -103,9 +113,9 @@ void mux::set_priority(uint32_t lch_id, uint32_t new_priority, int set_PBR, uint
     ch.Bj       = 0; 
     lch.push_back(ch);
   } else {
-    ch_ptr->priority = new_priority; 
-    ch_ptr->PBR      = set_PBR; 
-    ch_ptr->BSD      = set_BSD;     
+    lch[pos].priority = new_priority; 
+    lch[pos].PBR      = set_PBR; 
+    lch[pos].BSD      = set_BSD;     
   }
   
   // sort according to priority (increasing is lower priority)
@@ -181,7 +191,10 @@ uint8_t* mux::pdu_get(uint8_t *payload, uint32_t pdu_sz, uint32_t tx_tti, uint32
       pdu_msg.get()->set_phr(phr_value);
     }
   }
-
+  
+  sched_lch.clear();
+  int sdu_space = pdu_msg.get_sdu_space(); 
+  
   // data from any Logical Channel, except data from UL-CCCH;  
   // first only those with positive Bj
   uint32_t sdu_sz   = 0; 
@@ -189,7 +202,7 @@ uint8_t* mux::pdu_get(uint8_t *payload, uint32_t pdu_sz, uint32_t tx_tti, uint32
     if (lch[i].id != 0) {
       bool res = true; 
       while ((lch[i].Bj > 0 || lch[i].PBR < 0) && res) {
-        res = allocate_sdu(lch[i].id, &pdu_msg, (lch[i].PBR<0)?-1:lch[i].Bj, &sdu_sz);
+        res = sched_sdu(&lch[i], &sdu_space, (lch[i].PBR<0)?-1:lch[i].Bj, &sdu_sz);
         if (res && lch[i].PBR >= 0) {
           lch[i].Bj -= sdu_sz;         
         }
@@ -199,7 +212,15 @@ uint8_t* mux::pdu_get(uint8_t *payload, uint32_t pdu_sz, uint32_t tx_tti, uint32
 
   // If resources remain, allocate regardless of their Bj value
   for (int i=0;i<lch.size();i++) {
-    while (allocate_sdu(lch[i].id, &pdu_msg, -1, NULL));   
+    while (sched_sdu(&lch[i], &sdu_space, -1, NULL));   
+  }
+  
+  // Merge allocated SDUs to prevent fragmentation 
+  merge_sdus();
+  
+  // Now allocate the SDUs from the RLC 
+  for (int i=0;i<sched_lch.size();i++) {
+    allocate_sdu(sched_lch[i]->id, &pdu_msg, sched_lch[i]->sched_len, NULL);    
   }
 
   if (!regular_bsr) {
@@ -232,6 +253,51 @@ void mux::append_crnti_ce_next_tx(uint16_t crnti) {
   pending_crnti_ce = crnti; 
 }
 
+void mux::merge_sdus()
+{
+  // If a single SDU is scheduled, maximize the grant utilization
+  if (sched_lch.size() == 1) {
+    sched_lch[0]->sched_len = -1; 
+  } else {
+    for(std::vector<lchid_t*>::iterator iter=sched_lch.begin(); iter!=sched_lch.end(); ++iter) {
+      lchid_t* ch = *iter; 
+      int j=0;
+      while(j<sched_lch.size() && sched_lch[j]->id != ch->id) {
+        j++;
+      }
+      if (j<sched_lch.size()) {
+        ch->sched_len += sched_lch[j]->sched_len; 
+        sched_lch.erase(sched_lch.begin()+j);
+      }
+    }
+  }
+}
+
+bool mux::sched_sdu(lchid_t *ch, int *sdu_space, int max_sdu_sz, uint32_t* sdu_sz) 
+{
+ 
+  // Get n-th pending SDU pointer and length
+  int sdu_len = rlc->get_buffer_state(ch->id); 
+  
+  if (sdu_len > 0) { // there is pending SDU to allocate
+    int buffer_state = sdu_len; 
+    if (sdu_len > max_sdu_sz && max_sdu_sz >= 0) {
+      sdu_len = max_sdu_sz;
+    }
+    if (sdu_len > *sdu_space) {
+      sdu_len = *sdu_space;
+    }        
+    
+    *sdu_space -= sdu_len; 
+    *sdu_sz = sdu_len; 
+
+    ch->sched_len = sdu_len; 
+    sched_lch.push_back(ch);
+    Info("SDU: scheduled lcid=%d, rlc_buffer=%d, allocated=%d/%d\n", 
+            ch->id, buffer_state, sdu_len, sdu_space);
+  }
+  return false; 
+}
 
 bool mux::allocate_sdu(uint32_t lcid, srslte::sch_pdu* pdu_msg, int max_sdu_sz, uint32_t* sdu_sz) 
 {
@@ -257,8 +323,8 @@ bool mux::allocate_sdu(uint32_t lcid, srslte::sch_pdu* pdu_msg, int max_sdu_sz, 
             *sdu_sz = sdu_len; 
           }
           
-          Info("SDU: rlc_buffer=%d, allocated=%d/%d, max_sdu_sz=%d, remaining=%d\n", 
-                 buffer_state, sdu_len, sdu_space, max_sdu_sz, pdu_msg->rem_size());
+          Info("SDU: lcid=%d, rlc_buffer=%d, allocated=%d/%d, max_sdu_sz=%d, remaining=%d\n", 
+                 lcid, buffer_state, sdu_len, sdu_space, max_sdu_sz, pdu_msg->rem_size());
           return true;               
         } else {
           Warning("SDU: rlc_buffer=%d, allocated=%d/%d, remaining=%d\n", 
