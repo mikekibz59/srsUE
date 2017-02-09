@@ -42,12 +42,13 @@
 
 
 typedef struct {
-  uint32_t      id; 
+  int           id; 
   int           Bj;
   int           PBR; // -1 sets to infinity
   uint32_t      BSD;
   uint32_t      priority;    
   int           sched_len;
+  int           buffer_len; 
 } lchid_t; 
 
 namespace srsue {
@@ -77,16 +78,14 @@ public:
 private:  
   int      find_lchid(uint32_t lch_id);
   bool     pdu_move_to_msg3(uint32_t pdu_sz);
-  bool     allocate_sdu(uint32_t lcid, srslte::sch_pdu *pdu, int max_sdu_sz, uint32_t *sdu_sz);
-  bool     sched_sdu(lchid_t *ch, int *sdu_space, int max_sdu_sz, uint32_t *sdu_sz);
-  void     merge_sdus(); 
+  bool     allocate_sdu(uint32_t lcid, srslte::sch_pdu *pdu, int max_sdu_sz);
+  bool     sched_sdu(lchid_t *ch, int *sdu_space, int max_sdu_sz);
   
   const static int MIN_RLC_SDU_LEN = 0; 
   const static int MAX_NOF_SUBHEADERS = 20; 
   const static int MAX_HARQ_PROC = 8; 
   
   std::vector<lchid_t> lch; 
-  std::vector<lchid_t*> sched_lch; 
   
   // Keep track of the PIDs that transmitted BSR reports 
   bool pid_has_bsr[MAX_HARQ_PROC]; 
