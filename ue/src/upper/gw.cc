@@ -67,6 +67,8 @@ void gw::stop()
     run_enable = false;
     if(if_up)
     {
+      close(tun_fd);
+      
       // Wait thread to exit gracefully otherwise might leave a mutex locked
       int cnt=0;
       while(running && cnt<100) {
