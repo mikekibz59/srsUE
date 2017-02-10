@@ -44,7 +44,7 @@ FIND_LIBRARY(
     SRSLTE_RF_LIBRARY
     NAMES   srslte_rf
     HINTS   $ENV{SRSLTE_DIR}/lib
-            ${SRSLTE_BUILDDIR}/srslte/lib
+            ${SRSLTE_BUILDDIR}/srslte/lib/rf
             ${PC_SRSLTE_LIBDIR}
             ${CMAKE_INSTALL_PREFIX}/lib
             ${CMAKE_INSTALL_PREFIX}/lib64

@@ -976,7 +976,7 @@ void phch_worker::update_measurements()
     /* Compute ADC/RX gain offset every 20 ms */
     if ((tti%20) == 0 || phy->rx_gain_offset == 0) {
       float rx_gain_offset = 0; 
-      if (phy->get_radio()->has_rssi()) {
+      if (phy->get_radio()->has_rssi() && phy->args->rssi_sensor_enabled) {
         float rssi_all_signal = srslte_chest_dl_get_rssi(&ue_dl.chest);          
         if (rssi_all_signal) {
           rx_gain_offset = 10*log10(rssi_all_signal)-phy->get_radio()->get_rssi();

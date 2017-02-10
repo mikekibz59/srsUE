@@ -59,6 +59,7 @@ typedef struct {
   bool sfo_correct_disable; 
   std::string sss_algorithm; 
   float estimator_fil_w;   
+  bool rssi_sensor_enabled;
 } phy_args_t; 
   
 /* Interface MAC -> PHY */
