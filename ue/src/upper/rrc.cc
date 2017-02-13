@@ -1096,13 +1096,13 @@ void rrc::apply_phy_config_dedicated(LIBLTE_RRC_PHYSICAL_CONFIG_DEDICATED_STRUCT
   if(phy_cnfg->cqi_report_cnfg_present) {
     if (phy_cnfg->cqi_report_cnfg.report_periodic_present) {
       memcpy(&current_cfg->cqi_report_cnfg.report_periodic, &phy_cnfg->cqi_report_cnfg.report_periodic, sizeof(LIBLTE_RRC_CQI_REPORT_PERIODIC_STRUCT));
-      current_cfg->cqi_report_cnfg.report_periodic_setup_present = true; 
+      current_cfg->cqi_report_cnfg.report_periodic_setup_present = phy_cnfg->cqi_report_cnfg.report_periodic_setup_present; 
     } else if (apply_defaults) {
       current_cfg->cqi_report_cnfg.report_periodic_setup_present = false; 
     }
     if (phy_cnfg->cqi_report_cnfg.report_mode_aperiodic_present) {
       current_cfg->cqi_report_cnfg.report_mode_aperiodic         = phy_cnfg->cqi_report_cnfg.report_mode_aperiodic;
-      current_cfg->cqi_report_cnfg.report_mode_aperiodic_present = true;
+      current_cfg->cqi_report_cnfg.report_mode_aperiodic_present = phy_cnfg->cqi_report_cnfg.report_mode_aperiodic_present;
     } else if (apply_defaults) {
       current_cfg->cqi_report_cnfg.report_mode_aperiodic_present = false; 
     }
