@@ -325,7 +325,7 @@ void radio::set_tx_srate(float srate)
       } else if (srate_khz == 3.84e3) {
         nsamples = 69;
       } else if (srate_khz == 5.76e3) {
-        nsamples = 110;
+        nsamples = 93;
       } else if (srate_khz == 11.52e3) {
         nsamples = 120;
       } else if (srate_khz == 15.36e3) {
