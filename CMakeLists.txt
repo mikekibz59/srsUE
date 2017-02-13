@@ -32,6 +32,7 @@ include(SRSUEVersion) #sets version information
 # Options
 ########################################################################
 option(ENABLE_GUI "ENABLE_GUI" ON)
+set(GCC_ARCH native CACHE STRING "GCC compile for specific architecture.")
 
 ########################################################################
 # Add general includes and dependencies
@@ -66,12 +67,12 @@ else(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -std=c++03")
   find_package(SSE)
   if (HAVE_AVX2)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -mfpmath=sse -mavx2 -Ofast -funroll-loops -DLV_HAVE_AVX -DLV_HAVE_SSE")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=${GCC_ARCH} -mfpmath=sse -mavx2 -Ofast -funroll-loops -DLV_HAVE_AVX -DLV_HAVE_SSE")
   else (HAVE_AVX2)
     if(HAVE_AVX)
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -mfpmath=sse -mavx -Ofast -funroll-loops -DLV_HAVE_AVX -DLV_HAVE_SSE")
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=${GCC_ARCH} -mfpmath=sse -mavx -Ofast -funroll-loops -DLV_HAVE_AVX -DLV_HAVE_SSE")
     elseif(HAVE_SSE)
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -mfpmath=sse -msse4.1 -Ofast -funroll-loops -DLV_HAVE_SSE")
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=${GCC_ARCH} -mfpmath=sse -msse4.1 -Ofast -funroll-loops -DLV_HAVE_SSE")
     endif(HAVE_AVX)
   endif (HAVE_AVX2)
   
