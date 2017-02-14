@@ -31,7 +31,7 @@
 #include <memory>
 #include <utility>
 #include <pthread.h>
-
+#include <stdio.h>
 namespace srslte {
 
 template<typename myobj>
@@ -49,14 +49,16 @@ public:
     pthread_mutex_unlock(&mutex);
   }
 
-  bool try_pop(myobj& value) { 
+  bool try_pop(myobj *value) { 
     pthread_mutex_lock(&mutex);
     if (q.empty()) {
       pthread_mutex_unlock(&mutex);
       return false;
     }
-    value = *((myobj*) q.front());; 
-    q.pop();
+    if (value) {
+      *value = q.front(); 
+      q.pop();
+    }
     pthread_mutex_unlock(&mutex);
     return true;
   }
