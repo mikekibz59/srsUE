@@ -61,6 +61,7 @@ public:
       buffer_t *b = new buffer_t;
       available.push(b);
     }
+    capacity = nof_buffers; 
   }
 
   ~buffer_pool() { 
@@ -82,6 +83,11 @@ public:
       b = available.top();
       used.push_back(b);
       available.pop();
+      
+      if (available.size() < capacity/20) {
+        printf("Warning buffer pool capacity is %.2f %%\n", (float) available.size()/capacity);
+      }
+      
     } else {
       printf("Error - buffer pool is empty\n");
     }
@@ -109,6 +115,7 @@ private:
   std::stack<buffer_t*>  available;
   std::vector<buffer_t*> used; 
   pthread_mutex_t        mutex;  
+  uint32_t capacity;
 };
 
 
