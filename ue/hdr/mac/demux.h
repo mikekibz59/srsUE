@@ -32,7 +32,6 @@
 #include "common/mac_interface.h"
 #include "common/pdu_queue.h"
 #include "common/log.h"
-#include "common/qbuff.h"
 #include "common/timers.h"
 #include "common/pdu.h"
 
@@ -51,7 +50,7 @@ public:
   uint8_t* request_buffer(uint32_t pid, uint32_t len);
   
   void     push_pdu(uint32_t pid, uint8_t *buff, uint32_t nof_bytes);
-  void     push_pdu_temp_crnti(uint32_t pid, uint8_t *buff, uint32_t nof_bytes);
+  void     push_pdu_temp_crnti(uint8_t *buff, uint32_t nof_bytes);
 
   void     set_uecrid_callback(bool (*callback)(void*, uint64_t), void *arg);
   bool     get_uecrid_successful();

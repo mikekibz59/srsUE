@@ -62,7 +62,7 @@ uint8_t* demux::request_buffer(uint32_t pid, uint32_t len)
 {  
   uint8_t *buff = NULL; 
   if (pid < NOF_HARQ_PID) {
-    return pdus.request_buffer(pid, len);
+    return pdus.request(len);
   } else if (pid == NOF_HARQ_PID) {
     buff = bcch_buffer;
   } else {
@@ -80,34 +80,30 @@ uint8_t* demux::request_buffer(uint32_t pid, uint32_t len)
  * Warning: this function does some processing here assuming ACK deadline is not an 
  * issue here because Temp C-RNTI messages have small payloads
  */
-void demux::push_pdu_temp_crnti(uint32_t pid, uint8_t *buff, uint32_t nof_bytes) 
+void demux::push_pdu_temp_crnti(uint8_t *buff, uint32_t nof_bytes) 
 {
-  if (pid < NOF_HARQ_PID) {
-    if (nof_bytes > 0) {
-      // Unpack DLSCH MAC PDU 
-      pending_mac_msg.init_rx(nof_bytes);
-      pending_mac_msg.parse_packet(buff);
-      
-      // Look for Contention Resolution UE ID 
-      is_uecrid_successful = false; 
-      while(pending_mac_msg.next() && !is_uecrid_successful) {
-        if (pending_mac_msg.get()->ce_type() == srslte::sch_subh::CON_RES_ID) {
-          Debug("Found Contention Resolution ID CE\n");
-          is_uecrid_successful = uecrid_callback(uecrid_callback_arg, pending_mac_msg.get()->get_con_res_id());
-        }
+  if (nof_bytes > 0) {
+    // Unpack DLSCH MAC PDU 
+    pending_mac_msg.init_rx(nof_bytes);
+    pending_mac_msg.parse_packet(buff);
+    
+    // Look for Contention Resolution UE ID 
+    is_uecrid_successful = false; 
+    while(pending_mac_msg.next() && !is_uecrid_successful) {
+      if (pending_mac_msg.get()->ce_type() == srslte::sch_subh::CON_RES_ID) {
+        Debug("Found Contention Resolution ID CE\n");
+        is_uecrid_successful = uecrid_callback(uecrid_callback_arg, pending_mac_msg.get()->get_con_res_id());
       }
-      
-      pending_mac_msg.reset();
-      
-      Debug("Saved MAC PDU with Temporal C-RNTI in buffer\n");
-      
-      pdus.push_pdu(pid, nof_bytes);
-    } else {
-      Warning("Trying to push PDU with payload size zero\n");
     }
+    
+    pending_mac_msg.reset();
+    
+    Debug("Saved MAC PDU with Temporal C-RNTI in buffer\n");
+    
+    pdus.push(buff, nof_bytes);
   } else {
-    Error("Pushed buffer for invalid PID=%d\n", pid);
-  } 
+    Warning("Trying to push PDU with payload size zero\n");
+  }
 }
 
 /* Demultiplexing of logical channels and dissassemble of MAC CE 
@@ -117,7 +113,7 @@ void demux::push_pdu_temp_crnti(uint32_t pid, uint8_t *buff, uint32_t nof_bytes)
 void demux::push_pdu(uint32_t pid, uint8_t *buff, uint32_t nof_bytes)
 {
   if (pid < NOF_HARQ_PID) {    
-    return pdus.push_pdu(pid, nof_bytes);
+    return pdus.push(buff, nof_bytes);
   } else if (pid == NOF_HARQ_PID) {
     /* Demultiplexing of MAC PDU associated with SI-RNTI. The PDU passes through 
     * the MAC in transparent mode. 

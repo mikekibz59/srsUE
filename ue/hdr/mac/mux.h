@@ -29,7 +29,6 @@
 
 #include <pthread.h>
 
-#include "common/qbuff.h"
 #include "common/log.h"
 #include "common/mac_interface.h"
 #include "common/pdu.h"
@@ -63,7 +62,6 @@ public:
   void     pusch_retx(uint32_t tx_tti, uint32_t pid);
       
 private:  
-  bool     pdu_move_to_msg3(uint32_t pdu_sz);
   bool     allocate_sdu(uint32_t lcid, srslte::sch_pdu *pdu, int max_sdu_sz, uint32_t *sdu_sz);
   
   // There is a known bug in the code and NOF_UL_LCH must match the maximum priority (16) + 1
@@ -93,7 +91,7 @@ private:
   
   /* Msg3 Buffer */
   static const uint32_t MSG3_BUFF_SZ = 128; 
-  srslte::qbuff         msg3_buff;
+  uint8_t               msg3_buff[MSG3_BUFF_SZ];
   
   /* PDU Buffer */
   srslte::sch_pdu    pdu_msg; 

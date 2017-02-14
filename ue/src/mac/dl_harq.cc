@@ -308,7 +308,7 @@ void dl_harq_entity::dl_harq_process::tb_decoded(bool ack_)
       if (ack) {
         if (cur_grant.rnti_type == SRSLTE_RNTI_TEMP) {
           Debug("Delivering PDU=%d bytes to Dissassemble and Demux unit (Temporal C-RNTI)\n", cur_grant.n_bytes);
-          harq_entity->demux_unit->push_pdu_temp_crnti(pid, payload_buffer_ptr, cur_grant.n_bytes);
+          harq_entity->demux_unit->push_pdu_temp_crnti(payload_buffer_ptr, cur_grant.n_bytes);
         } else {
           Debug("Delivering PDU=%d bytes to Dissassemble and Demux unit\n", cur_grant.n_bytes);
           harq_entity->demux_unit->push_pdu(pid, payload_buffer_ptr, cur_grant.n_bytes);

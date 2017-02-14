@@ -28,7 +28,8 @@
 #define PDUPROC_H
 
 #include "common/log.h"
-#include "common/qbuff.h"
+#include "common/block_queue.h"
+#include "common/buffer_pool.h"
 #include "common/timers.h"
 #include "common/pdu.h"
 
@@ -46,24 +47,28 @@ public:
       virtual void process_pdu(uint8_t *buff, uint32_t len) = 0;
   };
 
-  pdu_queue();
+  pdu_queue() : pool(NOF_BUFFER_PDUS), callback(NULL) {}
   void init(process_callback *callback, log* log_h_);
 
-  bool     process_pdus();
-  uint8_t* request_buffer(uint32_t pid, uint32_t len);
+  uint8_t* request(uint32_t len);  
+  void     push(uint8_t *ptr, uint32_t len);
+
+  bool   process_pdus();
   
-  void     push_pdu(uint32_t pid, uint32_t nof_bytes);
-    
 private:
-  const static int NOF_HARQ_PID    = 8; 
+  const static int NOF_BUFFER_PDUS = 32; // Number of PDU buffers in total  
   const static int MAX_PDU_LEN     = 150*1024/8; // ~ 150 Mbps  
-  const static int NOF_BUFFER_PDUS = 64; // Number of PDU buffers per HARQ pid
-        
-  std::vector<qbuff> pdu_q;
-  process_callback *callback; 
+ 
+  typedef struct  {
+    uint8_t  ptr[MAX_PDU_LEN]; 
+    uint32_t len; 
+  } pdu_t; 
   
-  log       *log_h;
-  bool initiated; 
+  block_queue<pdu_t*> pdu_q; 
+  buffer_pool<pdu_t>  pool;
+  
+  process_callback   *callback;   
+  log                *log_h;
 };
 
 } // namespace srslte

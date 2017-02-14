@@ -30,7 +30,6 @@
 #include <stdint.h>
 
 #include "common/log.h"
-#include "common/qbuff.h"
 #include "common/timers.h"
 #include "mac/mux.h"
 #include "mac/demux.h"
