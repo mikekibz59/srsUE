@@ -154,9 +154,6 @@ public:
       timestamp_is_set = true; 
     }
 
-    // Linked list support
-    byte_buffer_t*  get_next() { return next; }
-    void set_next(byte_buffer_t *b) { next = b; }
 private:
   
   

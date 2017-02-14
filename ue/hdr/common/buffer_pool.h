@@ -28,6 +28,9 @@
 #define BUFFER_POOL_H
 
 #include <pthread.h>
+#include <vector>
+#include <stack>
+#include <algorithm>
 
 /*******************************************************************************
                               INCLUDES
@@ -40,9 +43,9 @@ namespace srslte {
 /******************************************************************************
  * Buffer pool
  *
- * Preallocates a large number of srsue_byte_buffer_t and provides allocate and
+ * Preallocates a large number of buffer_t and provides allocate and
  * deallocate functions. Provides quick object creation and deletion as well
- * as object reuse. Uses a linked list to keep track of available buffers.
+ * as object reuse. 
  * Singleton class of byte_buffer_t (but other pools of different type can be created)
  *****************************************************************************/
 
@@ -51,50 +54,37 @@ class buffer_pool{
 public:
   
   // non-static methods
-  buffer_pool()
+  buffer_pool(uint32_t nof_buffers = POOL_SIZE)
   {
     pthread_mutex_init(&mutex, NULL);
-    pool = new buffer_t[POOL_SIZE];
-    first_available = &pool[0];
-    for(int i=0;i<POOL_SIZE-1;i++)
-    {
-      pool[i].set_next(&pool[i+1]);
+    for(int i=0;i<nof_buffers;i++) {
+      buffer_t *b = new buffer_t;
+      available.push(b);
     }
-    pool[POOL_SIZE-1].set_next(NULL);
-    allocated = 0;
   }
 
-  buffer_pool(uint32_t buffer_size)
-  {
-    buffer_pool();
-    for(int i=0;i<POOL_SIZE-1;i++)
-    {
-      pool[i].set_size(buffer_size);
-    }
-  }
   ~buffer_pool() { 
-    delete [] pool; 
-    
+    // this destructor assumes all buffers have been properly deallocated 
+    while(available.size()) {
+      delete available.top();
+      available.pop();
+    }
   }
   
   
   buffer_t* allocate()
   {
     pthread_mutex_lock(&mutex);
+    buffer_t* b = NULL;
 
-    if(first_available == NULL)
+    if(available.size() > 0)
     {
+      b = available.top();
+      used.push_back(b);
+      available.pop();
+    } else {
       printf("Error - buffer pool is empty\n");
-      pthread_mutex_unlock(&mutex);
-      return NULL;
     }
-
-    // Remove from available list
-    buffer_t* b = first_available;
-    first_available = b->get_next();
-    allocated++;
-    
-    //printf("%s\tallocated=%d\n", now_time().c_str(), allocated);
 
     pthread_mutex_unlock(&mutex);
     return b;
@@ -103,23 +93,22 @@ public:
   void deallocate(buffer_t *b)
   {
     pthread_mutex_lock(&mutex);
-
-    // Add to front of available list
-    b->reset();
-    b->set_next(first_available);
-    first_available = b;
-    allocated--;
-    
+    typename std::vector<buffer_t*>::iterator elem = std::find(used.begin(), used.end(), b);
+    if (elem != used.end()) {
+      used.erase(elem); 
+      available.push(b);
+    } else {
+      printf("Error deallocating from buffer pool: buffer not created in this pool.\n");
+    }
     pthread_mutex_unlock(&mutex);
   }
 
   
 private:  
-  static const int      POOL_SIZE = 2048;
-  buffer_t              *pool;
-  buffer_t              *first_available;
-  pthread_mutex_t       mutex;  
-  int                   allocated;
+  static const int       POOL_SIZE = 2048;
+  std::stack<buffer_t*>  available;
+  std::vector<buffer_t*> used; 
+  pthread_mutex_t        mutex;  
 };
 
 
@@ -139,6 +128,7 @@ public:
     return pool->allocate();
   }
   void deallocate(byte_buffer_t *b) {
+    b->reset();
     pool->deallocate(b);
   }
 private:
