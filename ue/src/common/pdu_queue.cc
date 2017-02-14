@@ -64,6 +64,11 @@ uint8_t* pdu_queue::request(uint32_t len)
   return pdu->ptr; 
 }
 
+void pdu_queue::deallocate(uint8_t* pdu)
+{
+  pool.deallocate((pdu_t*) pdu);
+}
+
 /* Demultiplexing of logical channels and dissassemble of MAC CE 
  * This function enqueues the packet and returns quicly because ACK 
  * deadline is important here. 

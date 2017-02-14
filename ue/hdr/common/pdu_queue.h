@@ -47,16 +47,17 @@ public:
       virtual void process_pdu(uint8_t *buff, uint32_t len) = 0;
   };
 
-  pdu_queue() : pool(NOF_BUFFER_PDUS), callback(NULL) {}
+  pdu_queue(uint32_t pool_size = DEFAULT_POOL_SIZE) : pool(pool_size), callback(NULL) {}
   void init(process_callback *callback, log* log_h_);
 
   uint8_t* request(uint32_t len);  
+  void     deallocate(uint8_t* pdu);
   void     push(uint8_t *ptr, uint32_t len);
-
+  
   bool   process_pdus();
   
 private:
-  const static int NOF_BUFFER_PDUS = 32; // Number of PDU buffers in total  
+  const static int DEFAULT_POOL_SIZE = 32; // Number of PDU buffers in total  
   const static int MAX_PDU_LEN     = 150*1024/8; // ~ 150 Mbps  
  
   typedef struct  {
