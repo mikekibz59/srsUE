@@ -37,7 +37,7 @@ rlc_um::rlc_um() : tx_sdu_queue(16)
 {
   tx_sdu = NULL;
   rx_sdu = NULL;
-  pool = buffer_pool::get_instance();
+  pool = byte_buffer_pool::get_instance();
 
   pthread_mutex_init(&mutex, NULL);
   

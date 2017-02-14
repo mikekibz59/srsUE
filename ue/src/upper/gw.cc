@@ -48,7 +48,7 @@ gw::gw()
 
 void gw::init(pdcp_interface_gw *pdcp_, rrc_interface_gw *rrc_, ue_interface *ue_, srslte::log *gw_log_)
 {
-  pool    = buffer_pool::get_instance();
+  pool    = byte_buffer_pool::get_instance();
   pdcp    = pdcp_;
   rrc     = rrc_;
   ue      = ue_;

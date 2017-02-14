@@ -33,7 +33,7 @@ namespace srsue{
 
 rlc_tm::rlc_tm() : ul_queue(16)
 {
-  pool = buffer_pool::get_instance();
+  pool = byte_buffer_pool::get_instance();
 }
 
 void rlc_tm::init(srslte::log        *log_,

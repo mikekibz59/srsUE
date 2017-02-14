@@ -67,7 +67,7 @@ void rrc::init(phy_interface_rrc     *phy_,
                mac_interface_timers  *mac_timers_,
                srslte::log           *rrc_log_)
 {
-  pool    = buffer_pool::get_instance();
+  pool    = byte_buffer_pool::get_instance();
   phy     = phy_;
   mac     = mac_;
   rlc     = rlc_;

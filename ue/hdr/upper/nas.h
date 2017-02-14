@@ -78,7 +78,7 @@ public:
   bool      get_s_tmsi(LIBLTE_RRC_S_TMSI_STRUCT *s_tmsi);
   
 private:
-  srslte::buffer_pool *pool;
+  srslte::byte_buffer_pool *pool;
   srslte::log        *nas_log;
   rrc_interface_nas  *rrc;
   usim_interface_nas *usim;

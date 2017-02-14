@@ -79,7 +79,7 @@ public:
 private:
   void reset_metrics(); 
   
-  srslte::buffer_pool        *pool;
+  srslte::byte_buffer_pool        *pool;
   srslte::log        *rlc_log;
   pdcp_interface_rlc *pdcp;
   rrc_interface_rlc  *rrc;
