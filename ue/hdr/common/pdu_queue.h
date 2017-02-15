@@ -47,7 +47,7 @@ public:
       virtual void process_pdu(uint8_t *buff, uint32_t len) = 0;
   };
 
-  pdu_queue(uint32_t pool_size = DEFAULT_POOL_SIZE) : pool(pool_size), callback(NULL) {}
+  pdu_queue(uint32_t pool_size = DEFAULT_POOL_SIZE) : pool(pool_size), callback(NULL), log_h(NULL) {}
   void init(process_callback *callback, log* log_h_);
 
   uint8_t* request(uint32_t len);  

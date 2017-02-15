@@ -38,7 +38,6 @@ namespace srsue {
 mux::mux() : pdu_msg(MAX_NOF_SUBHEADERS)
 {
   pthread_mutex_init(&mutex, NULL);
-  msg3_flush();
   
   for (int i=0;i<NOF_UL_LCH;i++) {
    priority[i]        = i; 
@@ -48,6 +47,13 @@ mux::mux() : pdu_msg(MAX_NOF_SUBHEADERS)
    lchid_sorted[i]    = i; 
   }  
   pending_crnti_ce = 0;
+
+  log_h = NULL; 
+  rlc   = NULL; 
+  bsr_procedure = NULL; 
+  phr_procedure = NULL; 
+  
+  msg3_flush();
 }
 
 void mux::init(rlc_interface_mac *rlc_, srslte::log *log_h_, bsr_proc *bsr_procedure_, phr_proc *phr_procedure_)
