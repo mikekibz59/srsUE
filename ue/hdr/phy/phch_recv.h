@@ -82,6 +82,8 @@ private:
   
   srslte_ue_sync_t    ue_sync;
   srslte_ue_mib_t     ue_mib;
+  
+  cf_t *sf_buffer_sfn; 
 
   // Sync metrics
   sync_metrics_t metrics;
