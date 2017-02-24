@@ -58,6 +58,11 @@ bool demux::get_uecrid_successful() {
   return is_uecrid_successful;
 }
 
+void demux::deallocate(uint8_t* payload_buffer_ptr)
+{
+  pdus.deallocate(payload_buffer_ptr);
+}
+
 uint8_t* demux::request_buffer(uint32_t pid, uint32_t len)
 {  
   uint8_t *buff = NULL; 

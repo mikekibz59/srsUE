@@ -48,6 +48,7 @@ public:
 
   bool     process_pdus();
   uint8_t* request_buffer(uint32_t pid, uint32_t len);
+  void     deallocate(uint8_t* payload_buffer_ptr);
   
   void     push_pdu(uint32_t pid, uint8_t *buff, uint32_t nof_bytes);
   void     push_pdu_temp_crnti(uint8_t *buff, uint32_t nof_bytes);

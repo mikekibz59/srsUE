@@ -318,7 +318,9 @@ void dl_harq_entity::dl_harq_process::tb_decoded(bool ack_)
         }
       }
     }
-  } 
+  } else {
+    harq_entity->demux_unit->deallocate(payload_buffer_ptr);
+  }
   
   Info("DL %d:  %s tbs=%d, rv=%d, ack=%s, ndi=%d (%d), tti=%d (%d)\n", 
        pid, is_new_transmission?"newTX":"reTX ", 
