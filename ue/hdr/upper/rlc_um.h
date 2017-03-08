@@ -79,7 +79,7 @@ public:
 
 private:
 
-  srslte::buffer_pool          *pool;
+  srslte::byte_buffer_pool          *pool;
   srslte::log          *log;
   uint32_t              lcid;
   pdcp_interface_rlc   *pdcp;

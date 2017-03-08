@@ -36,7 +36,7 @@ namespace srsue{
 
 rlc::rlc()
 {
-  pool = buffer_pool::get_instance();
+  pool = byte_buffer_pool::get_instance();
 }
 
 void rlc::init(pdcp_interface_rlc *pdcp_,

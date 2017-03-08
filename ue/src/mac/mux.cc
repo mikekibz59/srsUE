@@ -39,12 +39,16 @@ namespace srsue {
 
 mux::mux() : pdu_msg(MAX_NOF_SUBHEADERS)
 {
-  msg3_buff.init(1, MSG3_BUFF_SZ);
-
   pthread_mutex_init(&mutex, NULL);
-  msg3_has_been_transmitted = false; 
   
   pending_crnti_ce = 0;
+
+  log_h = NULL; 
+  rlc   = NULL; 
+  bsr_procedure = NULL; 
+  phr_procedure = NULL; 
+  
+  msg3_flush();
 }
 
 void mux::init(rlc_interface_mac *rlc_, srslte::log *log_h_, bsr_proc *bsr_procedure_, phr_proc *phr_procedure_)
@@ -144,7 +148,6 @@ void mux::pusch_retx(uint32_t tx_tti, uint32_t pid)
 // Multiplexing and logical channel priorization as defined in Section 5.4.3
 uint8_t* mux::pdu_get(uint8_t *payload, uint32_t pdu_sz, uint32_t tx_tti, uint32_t pid)
 {
-  
   pthread_mutex_lock(&mutex);
     
   // Update Bj
@@ -192,7 +195,6 @@ uint8_t* mux::pdu_get(uint8_t *payload, uint32_t pdu_sz, uint32_t tx_tti, uint32
       pdu_msg.get()->set_phr(phr_value);
     }
   }
-  
   // Update buffer states for all logical channels 
   int sdu_space = pdu_msg.get_sdu_space(); 
   for (int i=0;i<lch.size();i++) {
@@ -218,14 +220,14 @@ uint8_t* mux::pdu_get(uint8_t *payload, uint32_t pdu_sz, uint32_t tx_tti, uint32
   }
   
   // Maximize the grant utilization 
-  /*
-  for (int i=lch.size()-1;i--;i>0) {
-    if (lch[i].sched_len > 0) {
-      lch[i].sched_len = -1; 
-      break;
+  if (lch.size() > 0) {
+    for (int i=lch.size()-1;i--;i>=0) {
+      if (lch[i].sched_len > 0) {
+        lch[i].sched_len = -1; 
+        break;
+      }
     }
   }
-  */
   // Now allocate the SDUs from the RLC 
   for (int i=0;i<lch.size();i++) {
     if (lch[i].sched_len != 0) {
@@ -244,7 +246,7 @@ uint8_t* mux::pdu_get(uint8_t *payload, uint32_t pdu_sz, uint32_t tx_tti, uint32
     }
   }
   
-  Debug("Assembled MAC PDU msg size %d/%d bytes\n", pdu_msg.get_pdu_len()-pdu_msg.rem_size(), pdu_sz);
+  log_h->debug("Assembled MAC PDU msg size %d/%d bytes\n", pdu_msg.get_pdu_len()-pdu_msg.rem_size(), pdu_sz);
 
   /* Generate MAC PDU and save to buffer */
   uint8_t *ret = pdu_msg.write_packet(log_h);   
@@ -327,9 +329,11 @@ bool mux::allocate_sdu(uint32_t lcid, srslte::sch_pdu* pdu_msg, int max_sdu_sz)
 
 void mux::msg3_flush()
 {
-  Debug("Msg3 buffer flushed\n");
-  msg3_buff.flush();
+  if (log_h) {
+    Debug("Msg3 buffer flushed\n");
+  }
   msg3_has_been_transmitted = false; 
+  bzero(msg3_buff, sizeof(MSG3_BUFF_SZ));
 }
 
 bool mux::msg3_is_transmitted()
@@ -337,44 +341,17 @@ bool mux::msg3_is_transmitted()
   return msg3_has_been_transmitted; 
 }
 
-
-bool mux::pdu_move_to_msg3(uint32_t pdu_sz)
-{
-  uint8_t *msg3_start = (uint8_t*) msg3_buff.request();
-  if (msg3_start) {
-    uint8_t *msg3_pdu = pdu_get(msg3_start, pdu_sz, 0, 0); 
-    if (msg3_pdu) {
-      memmove(msg3_start, msg3_pdu, pdu_sz*sizeof(uint8_t));
-      msg3_buff.push(pdu_sz);
-      return true;       
-    } else {
-      Error("Assembling PDU\n");
-    }    
-  } else {
-    Error("Generating PDU: PDU pending in buffer for transmission\n");
-  }  
-  return false; 
-}
-
 /* Returns a pointer to the Msg3 buffer */
 uint8_t* mux::msg3_get(uint8_t *payload, uint32_t pdu_sz)
 {
-  if (msg3_buff.isempty()) {
-    Debug("Moving PDU from Mux unit to Msg3 buffer\n");
-    if (!pdu_move_to_msg3(pdu_sz)) {
-      Error("Moving PDU from Mux unit to Msg3 buffer\n");
-      return NULL;
-    }    
-  }
-  uint8_t *msg3 = (uint8_t*) msg3_buff.pop();
-  if (msg3) {
-    memcpy(payload, msg3, sizeof(uint8_t)*pdu_sz);
-    msg3_has_been_transmitted = true; 
-    return payload; 
-  } else {
-    Error("Generating Msg3\n");
-  }
-  return NULL; 
+  uint8_t* msg3_buff_start_pdu = pdu_get(msg3_buff, pdu_sz, 0, 0); 
+  if (!msg3_buff_start_pdu) {
+    Error("Moving PDU from Mux unit to Msg3 buffer\n");
+    return NULL;
+  }    
+  memcpy(payload, msg3_buff_start_pdu, sizeof(uint8_t)*pdu_sz);
+  msg3_has_been_transmitted = true; 
+  return payload; 
 }
 
   

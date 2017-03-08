@@ -90,7 +90,7 @@ public:
   void liblte_rrc_log(char* str);
   
 private:
-  srslte::buffer_pool  *pool;
+  srslte::byte_buffer_pool  *pool;
   srslte::log          *rrc_log;
   phy_interface_rrc    *phy;
   mac_interface_rrc    *mac;

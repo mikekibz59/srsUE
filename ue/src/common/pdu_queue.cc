@@ -35,101 +35,68 @@
 
 namespace srslte {
     
-pdu_queue::pdu_queue() : pdu_q(NOF_HARQ_PID)
-{
-  callback = NULL; 
-}
 
 void pdu_queue::init(process_callback *callback_, log* log_h_)
 {
   callback  = callback_;
-  log_h     = log_h_; 
-  for (int i=0;i<NOF_HARQ_PID;i++) {
-    pdu_q[i].init(NOF_BUFFER_PDUS, MAX_PDU_LEN);
-  }
-  initiated = true; 
+  log_h     = log_h_;   
 }
 
-uint8_t* pdu_queue::request_buffer(uint32_t pid, uint32_t len)
+uint8_t* pdu_queue::request(uint32_t len)
 {  
-  if (!initiated) {
+  if (len > MAX_PDU_LEN) {
+    fprintf(stderr, "Error request buffer of invalid size %d. Max bytes %d\n", len, MAX_PDU_LEN);
     return NULL; 
   }
-
-  uint8_t *buff = NULL; 
-
-  if (pid < NOF_HARQ_PID) {
-    if (len < MAX_PDU_LEN) {
-      if (pdu_q[pid].pending_msgs() > 0.75*pdu_q[pid].max_msgs()) {
-        log_h->console("Warning TX buffer HARQ PID=%d: Occupation is %.1f%% \n", 
-                      pid, (float) 100*pdu_q[pid].pending_msgs()/pdu_q[pid].max_msgs());
-      }
-      buff = (uint8_t*) pdu_q[pid].request();
-      if (!buff) {
-        Error("Error Buffer full for HARQ PID=%d\n", pid);
-        log_h->error("Error Buffer full for HARQ PID=%d\n", pid);
-        return NULL;
-      }      
-    } else {
-      Error("Requested too large buffer for PID=%d. Requested %d bytes, max length %d bytes\n", 
-            pid, len, MAX_PDU_LEN);
+  pdu_t *pdu = pool.allocate();  
+  if (!pdu) {
+    if (log_h) {
+      log_h->error("Not enough buffers for MAC PDU\n");      
     }
-  } else {
-    Error("Requested buffer for invalid PID=%d\n", pid);
+    fprintf(stderr, "Not enough buffers for MAC PDU\n");
   }
-  return buff; 
+  if ((void*) pdu->ptr != (void*) pdu) {
+    fprintf(stderr, "Fatal error in memory alignment in struct pdu_queue::pdu_t\n");
+    exit(-1);
+  }
+  
+  return pdu->ptr; 
+}
+
+void pdu_queue::deallocate(uint8_t* pdu)
+{
+  pool.deallocate((pdu_t*) pdu);
 }
 
 /* Demultiplexing of logical channels and dissassemble of MAC CE 
  * This function enqueues the packet and returns quicly because ACK 
  * deadline is important here. 
  */ 
-void pdu_queue::push_pdu(uint32_t pid, uint32_t nof_bytes)
+void pdu_queue::push(uint8_t *ptr, uint32_t len)
 {
-  if (!initiated) {
-    return; 
-  }
-  
-  if (pid < NOF_HARQ_PID) {    
-    if (nof_bytes > 0) {
-      if (!pdu_q[pid].push(nof_bytes)) {
-        Warning("Full queue %d when pushing MAC PDU %d bytes\n", pid, nof_bytes);
-      }
-      //callback->process_pdu((uint8_t*) pdu_q[pid].request(), nof_bytes);
-    } else {
-      Warning("Trying to push PDU with payload size zero\n");
-    }
-  } else {
-    Error("Pushed buffer for invalid PID=%d\n", pid);
-  }  
+  pdu_t *pdu = (pdu_t*) ptr; 
+  pdu->len   = len; 
+  pdu_q.push(pdu);    
 }
 
 bool pdu_queue::process_pdus()
 {
-  if (!initiated) {
-    return false; 
-  }
-
   bool have_data = false; 
-  for (int i=0;i<NOF_HARQ_PID;i++) {
-    uint8_t *buff = NULL;
-    uint32_t cnt  = 0; 
-    do {
-      uint32_t len  = 0;       
-      buff = (uint8_t*) pdu_q[i].pop(&len);
-      if (buff) {
-        if (callback) {
-          callback->process_pdu(buff, len);
-        }
-        pdu_q[i].release();
-        cnt++;
-        have_data = true;
-      }
-    } while(buff);
-    if (cnt > 20) {
-      log_h->warning("Dispatched %d packets for PID=%d\n", cnt, i);
-      log_h->console("Warning dispatched %d packets for PID=%d\n", cnt, i);
+  uint32_t cnt  = 0; 
+  pdu_t *pdu; 
+  while(pdu_q.try_pop(&pdu)) {
+    if (callback) {
+      callback->process_pdu(pdu->ptr, pdu->len);
     }
+    pool.deallocate(pdu);
+    cnt++;
+    have_data = true;
+  }
+  if (cnt > 20) {
+    if (log_h) {
+      log_h->warning("Warning PDU queue dispatched %d packets\n", cnt);
+    }
+    printf("Warning PDU queue dispatched %d packets\n", cnt);
   }
   return have_data; 
 }

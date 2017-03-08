@@ -31,7 +31,6 @@
 
 #include <vector>
 
-#include "common/qbuff.h"
 #include "common/log.h"
 #include "common/mac_interface.h"
 #include "common/pdu.h"
@@ -101,7 +100,7 @@ private:
   
   /* Msg3 Buffer */
   static const uint32_t MSG3_BUFF_SZ = 128; 
-  srslte::qbuff         msg3_buff;
+  uint8_t               msg3_buff[MSG3_BUFF_SZ];
   
   /* PDU Buffer */
   srslte::sch_pdu    pdu_msg; 

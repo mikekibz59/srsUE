@@ -18,5 +18,5 @@
 #
 
 add_executable(mac_test mac_test.cc)
-target_link_libraries(mac_test srsue_common srsue_mac srsue_phy srsue_radio lte ${CMAKE_THREAD_LIBS_INIT} ${Boost_LIBRARIES})
+target_link_libraries(mac_test srsue_common srsue_mac srsue_phy srsue_radio lte ${SRSLTE_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${Boost_LIBRARIES})
 

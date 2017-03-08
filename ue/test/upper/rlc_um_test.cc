@@ -212,7 +212,7 @@ void loss_test()
 
 int main(int argc, char **argv) {
   basic_test();
-  buffer_pool::get_instance()->cleanup();
+  byte_buffer_pool::get_instance()->cleanup();
   loss_test();
-  buffer_pool::get_instance()->cleanup();
+  byte_buffer_pool::get_instance()->cleanup();
 }

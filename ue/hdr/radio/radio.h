@@ -128,7 +128,7 @@ namespace srslte {
 
       void register_error_handler(srslte_rf_error_handler_t h);
       
-    private:
+    protected:
       
       void save_trace(uint32_t is_eob, srslte_timestamp_t *usrp_time);
       

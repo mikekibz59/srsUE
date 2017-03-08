@@ -45,7 +45,7 @@ void nas::init(usim_interface_nas *usim_,
                gw_interface_nas   *gw_,
                srslte::log        *nas_log_)
 {
-  pool    = buffer_pool::get_instance();
+  pool    = byte_buffer_pool::get_instance();
   usim    = usim_;
   rrc     = rrc_;
   gw      = gw_;

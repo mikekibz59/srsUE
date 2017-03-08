@@ -75,12 +75,12 @@ void ue::cleanup(void)
 ue::ue()
     :started(false)
 {
-  pool = buffer_pool::get_instance();
+  pool = byte_buffer_pool::get_instance();
 }
 
 ue::~ue()
 {
-  buffer_pool::cleanup();
+  byte_buffer_pool::cleanup();
 }
 
 bool ue::init(all_args_t *args_)
@@ -224,11 +224,18 @@ void ue::stop()
   if(started)
   {
     usim.stop();
-    gw.stop();
     nas.stop();
     rrc.stop();
-    pdcp.stop();
+    
+    // Caution here order of stop is very important to avoid locks
+
+    
+    // Stop RLC and PDCP before GW to avoid locking on queue
     rlc.stop();
+    pdcp.stop();
+    gw.stop();
+
+    // PHY must be stopped before radio otherwise it will lock on rf_recv()
     mac.stop();
     phy.stop();
     radio.stop();

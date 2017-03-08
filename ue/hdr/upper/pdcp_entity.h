@@ -87,7 +87,7 @@ public:
   void write_pdu(byte_buffer_t *pdu);
 
 private:
-  srslte::buffer_pool        *pool;
+  srslte::byte_buffer_pool        *pool;
   srslte::log        *log;
   rlc_interface_pdcp *rlc;
   rrc_interface_pdcp *rrc;

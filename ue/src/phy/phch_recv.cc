@@ -61,6 +61,8 @@ void phch_recv::init(srslte::radio* _radio_handler, mac_interface_phy *_mac, rrc
   cell_is_set  = false; 
   sync_sfn_cnt = 0; 
   
+  sf_buffer_sfn = (cf_t*) srslte_vec_malloc(3*sizeof(cf_t)*SRSLTE_SF_LEN_PRB(100)); 
+  
   nof_tx_mutex = MUTEX_X_WORKER*workers_pool->get_nof_workers();
   worker_com->set_nof_mutex(nof_tx_mutex);
     
@@ -70,6 +72,7 @@ void phch_recv::init(srslte::radio* _radio_handler, mac_interface_phy *_mac, rrc
 void phch_recv::stop() {
   running = false; 
   wait_thread_finish();
+  free(sf_buffer_sfn);
 }
 
 void phch_recv::set_agc_enable(bool enable)
@@ -279,12 +282,11 @@ bool phch_recv::cell_search(int force_N_id_2)
 
 int phch_recv::sync_sfn(void) {
   
-  cf_t *sf_buffer = NULL; 
   int ret = SRSLTE_ERROR; 
   uint8_t bch_payload[SRSLTE_BCH_PAYLOAD_LEN];
 
   srslte_ue_sync_decode_sss_on_track(&ue_sync, true);
-  ret = srslte_ue_sync_get_buffer(&ue_sync, &sf_buffer);
+  ret = srslte_ue_sync_zerocopy(&ue_sync, sf_buffer_sfn);
   if (ret < 0) {
     Error("Error calling ue_sync_get_buffer");      
     return -1;
@@ -294,7 +296,7 @@ int phch_recv::sync_sfn(void) {
     if (srslte_ue_sync_get_sfidx(&ue_sync) == 0) {
       int sfn_offset=0;
       Info("SYNC:  Decoding MIB...\n");
-      int n = srslte_ue_mib_decode(&ue_mib, sf_buffer, bch_payload, NULL, &sfn_offset);
+      int n = srslte_ue_mib_decode(&ue_mib, sf_buffer_sfn, bch_payload, NULL, &sfn_offset);
       if (n < 0) {
         Error("Error decoding MIB while synchronising SFN");      
         return -1; 

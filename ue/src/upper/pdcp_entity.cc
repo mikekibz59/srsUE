@@ -39,7 +39,7 @@ pdcp_entity::pdcp_entity()
   ,do_security(false)
   ,sn_len(12)
 {
-  pool = buffer_pool::get_instance();
+  pool = byte_buffer_pool::get_instance();
 }
 
 void pdcp_entity::init(rlc_interface_pdcp            *rlc_,

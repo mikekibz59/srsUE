@@ -136,7 +136,7 @@ public:
     }
 #endif
 
-    pool = srslte::buffer_pool::get_instance();
+    pool = srslte::byte_buffer_pool::get_instance();
     
     // Start reader thread
     running=true; 
@@ -332,7 +332,7 @@ private:
   int tun_fd;
   bool running; 
   srslte::log *log_h;
-  srslte::buffer_pool *pool;
+  srslte::byte_buffer_pool *pool;
   srsue::rlc *rlc; 
   srsue::mac *mac; 
   srsue::phy *phy;  

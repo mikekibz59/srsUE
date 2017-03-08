@@ -61,7 +61,7 @@ private:
   
   static const int GW_THREAD_PRIO = 7; 
   
-  srslte::buffer_pool        *pool;
+  srslte::byte_buffer_pool        *pool;
   srslte::log        *gw_log;
   pdcp_interface_gw  *pdcp;
   rrc_interface_gw   *rrc;

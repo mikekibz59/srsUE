@@ -1034,22 +1034,22 @@ void resegment_test_6()
 
 int main(int argc, char **argv) {
   basic_test();
-  buffer_pool::get_instance()->cleanup();
+  byte_buffer_pool::get_instance()->cleanup();
   concat_test();
-  buffer_pool::get_instance()->cleanup();
+  byte_buffer_pool::get_instance()->cleanup();
   segment_test();
-  buffer_pool::get_instance()->cleanup();
+  byte_buffer_pool::get_instance()->cleanup();
   retx_test();
-  buffer_pool::get_instance()->cleanup();
+  byte_buffer_pool::get_instance()->cleanup();
   resegment_test_1();
-  buffer_pool::get_instance()->cleanup();
+  byte_buffer_pool::get_instance()->cleanup();
   resegment_test_2();
-  buffer_pool::get_instance()->cleanup();
+  byte_buffer_pool::get_instance()->cleanup();
   resegment_test_3();
-  buffer_pool::get_instance()->cleanup();
+  byte_buffer_pool::get_instance()->cleanup();
   resegment_test_4();
-  buffer_pool::get_instance()->cleanup();
+  byte_buffer_pool::get_instance()->cleanup();
   resegment_test_5();
-  buffer_pool::get_instance()->cleanup();
+  byte_buffer_pool::get_instance()->cleanup();
   resegment_test_6();
 }
