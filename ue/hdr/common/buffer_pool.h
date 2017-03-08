@@ -96,17 +96,20 @@ public:
     return b;
   }
   
-  void deallocate(buffer_t *b)
+  bool deallocate(buffer_t *b)
   {
+    bool ret = false; 
     pthread_mutex_lock(&mutex);
     typename std::vector<buffer_t*>::iterator elem = std::find(used.begin(), used.end(), b);
     if (elem != used.end()) {
       used.erase(elem); 
       available.push(b);
+      ret = true; 
     } else {
       printf("Error deallocating from buffer pool: buffer not created in this pool.\n");
     }
     pthread_mutex_unlock(&mutex);
+    return ret; 
   }
 
   

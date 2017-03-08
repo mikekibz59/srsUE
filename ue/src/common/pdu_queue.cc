@@ -65,7 +65,9 @@ uint8_t* pdu_queue::request(uint32_t len)
 
 void pdu_queue::deallocate(uint8_t* pdu)
 {
-  pool.deallocate((pdu_t*) pdu);
+  if (!pool.deallocate((pdu_t*) pdu)) {
+    log_h->warning("Error deallocating from buffer pool: buffer not created in this pool.\n");
+  }
 }
 
 /* Demultiplexing of logical channels and dissassemble of MAC CE 
@@ -88,13 +90,15 @@ bool pdu_queue::process_pdus()
     if (callback) {
       callback->process_pdu(pdu->ptr, pdu->len);
     }
-    pool.deallocate(pdu);
+    if (!pool.deallocate(pdu)) {
+      log_h->warning("Error deallocating from buffer pool: buffer not created in this pool.\n");
+    }
     cnt++;
     have_data = true;
   }
   if (cnt > 20) {
     if (log_h) {
-      log_h->warning("Warning PDU queue dispatched %d packets\n", cnt);
+      log_h->warning("PDU queue dispatched %d packets\n", cnt);
     }
     printf("Warning PDU queue dispatched %d packets\n", cnt);
   }
