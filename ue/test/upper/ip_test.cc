@@ -25,7 +25,7 @@
 #include "common/log_filter.h"
 #include "upper/rlc.h"
 #include "upper/rrc.h"
-#include "radio/radio.h"
+#include "radio/radio_multi.h"
 
 #define START_TUNTAP
 #define USE_RADIO
@@ -473,7 +473,7 @@ srslte::mac_pcap   mac_pcap;
 srsue::phy my_phy;
 srsue::mac my_mac;
 srsue::rlc rlc;
-srslte::radio my_radio; 
+srslte::radio_multi my_radio; 
 
 // Local classes for testing
 tester my_tester; 

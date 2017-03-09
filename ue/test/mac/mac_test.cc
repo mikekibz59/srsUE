@@ -29,7 +29,7 @@
 #include <signal.h>
 
 #include "liblte_rrc.h"
-#include "radio/radio.h"
+#include "radio/radio_multi.h"
 #include "phy/phy.h"
 #include "common/mac_interface.h"
 #include "common/log_stdout.h"
@@ -242,7 +242,7 @@ uint32_t lengths[2] = {37, 41};
 uint8_t reply[2] = {0x00, 0x04};
 
 
-srslte::radio radio; 
+srslte::radio_multi radio; 
 srsue::phy phy; 
 srsue::mac mac; 
 srslte::mac_pcap mac_pcap; 

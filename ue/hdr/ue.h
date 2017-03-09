@@ -37,7 +37,7 @@
 #include <string>
 #include <pthread.h>
 
-#include "radio/radio.h"
+#include "radio/radio_multi.h"
 #include "phy/phy.h"
 #include "mac/mac.h"
 #include "upper/rlc.h"
@@ -65,6 +65,7 @@ typedef struct {
   float         ul_freq;
   float         rx_gain;
   float         tx_gain;
+  uint32_t      nof_rx_ant; 
   std::string   device_name; 
   std::string   device_args; 
   std::string   time_adv_nsamples; 
@@ -160,7 +161,7 @@ private:
   ue();
   ~ue();
 
-  srslte::radio radio;
+  srslte::radio_multi radio;
   srsue::phy        phy;
   srsue::mac        mac;
   srslte::mac_pcap   mac_pcap;

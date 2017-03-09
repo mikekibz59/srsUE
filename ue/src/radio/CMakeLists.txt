@@ -17,5 +17,5 @@
 # and at http://www.gnu.org/licenses/.
 #
 
-add_library(srsue_radio radio.cc)
+add_library(srsue_radio radio.cc radio_multi.cc)
 target_link_libraries(srsue_radio)

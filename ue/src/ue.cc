@@ -148,7 +148,8 @@ bool ue::init(all_args_t *args_)
     dev_args = (char*) args->rf.device_args.c_str();
   }
   
-  if(!radio.init(dev_args, dev_name))
+  printf("Opening RF device with %d RX antennas...\n", args->rf.nof_rx_ant);
+  if(!radio.init_multi(args->rf.nof_rx_ant, dev_args, dev_name))
   {
     printf("Failed to find device %s with args %s\n",
            args->rf.device_name.c_str(), args->rf.device_args.c_str());
@@ -164,6 +165,9 @@ bool ue::init(all_args_t *args_)
   }
   
   radio.set_manual_calibration(&args->rf_cal);
+
+  // Set PHY options
+  args->expert.phy.nof_rx_ant = args->rf.nof_rx_ant;
 
   if (args->rf.tx_gain > 0) {
     args->expert.phy.ul_pwr_ctrl_en = false; 

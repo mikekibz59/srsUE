@@ -51,7 +51,7 @@ class phy
 {
 public:
   phy();
-  bool init(srslte::radio *radio_handler, 
+  bool init(srslte::radio_multi *radio_handler, 
             mac_interface_phy *mac, 
             rrc_interface_phy *rrc, 
             srslte::log *log_h, 
@@ -138,7 +138,7 @@ private:
   const static int SF_RECV_THREAD_PRIO = 1;
   const static int WORKERS_THREAD_PRIO = 0; 
   
-  srslte::radio         *radio_handler;
+  srslte::radio_multi   *radio_handler;
   srslte::log           *log_h;
 
   srslte::thread_pool      workers_pool;

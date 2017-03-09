@@ -49,7 +49,7 @@ public:
   void  free_cell();
   
   /* Functions used by main PHY thread */
-  cf_t *get_buffer();
+  cf_t* get_buffer(uint32_t antenna_idx);
   void  set_tti(uint32_t tti, uint32_t tx_tti); 
   void  set_tx_time(srslte_timestamp_t tx_time);
   void  set_cfo(float cfo);
@@ -107,7 +107,7 @@ private:
   phch_common    *phy;
   srslte_cell_t  cell; 
   bool           cell_initiated; 
-  cf_t          *signal_buffer; 
+  cf_t          *signal_buffer[SRSLTE_MAX_PORTS]; 
   uint32_t       tti; 
   uint32_t       tx_tti;
   bool           pregen_enabled;

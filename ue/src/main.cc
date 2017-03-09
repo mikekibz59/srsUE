@@ -65,6 +65,7 @@ void parse_args(all_args_t *args, int argc, char* argv[]) {
         ("rf.ul_freq",        bpo::value<float>(&args->rf.ul_freq)->default_value(2560000000),  "Uplink centre frequency")
         ("rf.rx_gain",        bpo::value<float>(&args->rf.rx_gain)->default_value(-1),          "Front-end receiver gain")
         ("rf.tx_gain",        bpo::value<float>(&args->rf.tx_gain)->default_value(-1),          "Front-end transmitter gain")
+        ("rf.nof_rx_ant",     bpo::value<uint32_t>(&args->rf.nof_rx_ant)->default_value(1),         "Number of RX antennas")
 
         ("rf.device_name",       bpo::value<string>(&args->rf.device_name)->default_value("auto"),    "Front-end device name")
         ("rf.device_args",       bpo::value<string>(&args->rf.device_args)->default_value("auto"),    "Front-end device arguments")

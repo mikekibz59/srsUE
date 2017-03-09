@@ -30,7 +30,7 @@
 #include "phy/phy.h"
 #include "common/log_stdout.h"
 #include "common/mac_interface.h"
-#include "radio/radio.h"
+#include "radio/radio_multi.h"
 
 
 /**********************************************************************
@@ -145,8 +145,8 @@ public:
 };
 
 
-testmac         my_mac;
-srslte::radio radio; 
+testmac             my_mac;
+srslte::radio_multi radio; 
 
 
 

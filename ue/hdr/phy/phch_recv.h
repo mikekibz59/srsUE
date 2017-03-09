@@ -31,7 +31,7 @@
 #include "common/log.h"
 #include "common/threads.h"
 #include "common/thread_pool.h"
-#include "radio/radio.h"
+#include "radio/radio_multi.h"
 #include "phy/prach.h"
 #include "phy/phch_worker.h"
 #include "phy/phch_common.h"
@@ -45,9 +45,9 @@ class phch_recv : public thread
 {
 public:
   phch_recv();
-  void init(srslte::radio* radio_handler, mac_interface_phy *mac,rrc_interface_phy *rrc,
+  void init(srslte::radio_multi* radio_handler, mac_interface_phy *mac,rrc_interface_phy *rrc,
             prach *prach_buffer, srslte::thread_pool *_workers_pool,
-            phch_common *_worker_com, srslte::log* _log_h, uint32_t prio);
+            phch_common *_worker_com, srslte::log* _log_h, uint32_t nof_rx_antennas, uint32_t prio);
   void stop();
   void set_agc_enable(bool enable);
 
@@ -72,7 +72,7 @@ private:
   
   bool   running; 
   
-  srslte::radio        *radio_h;
+  srslte::radio_multi        *radio_h;
   mac_interface_phy    *mac;
   rrc_interface_phy *rrc;
   srslte::log          *log_h;
@@ -83,7 +83,9 @@ private:
   srslte_ue_sync_t    ue_sync;
   srslte_ue_mib_t     ue_mib;
   
-  cf_t *sf_buffer_sfn; 
+  uint32_t      nof_rx_antennas;
+
+  cf_t *sf_buffer_sfn[SRSLTE_MAX_PORTS]; 
 
   // Sync metrics
   sync_metrics_t metrics;

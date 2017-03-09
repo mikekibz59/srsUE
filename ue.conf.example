@@ -9,6 +9,7 @@
 # rx_gain: Optional receive gain (dB). If disabled, AGC if enabled
 #
 # Optional parameters: 
+# nof_rx_ant:         Number of RX antennas (Default 1, supported 1 or 2)
 # device_name:        Device driver family. Supported options: "auto" (uses first found), "UHD" or "bladeRF" 
 # device_args:        Arguments for the device driver. Options are "auto" or any string. 
 #                     Default for UHD: "recv_frame_size=9232,send_frame_size=9232"
@@ -25,6 +26,7 @@ ul_freq = 2560000000
 tx_gain = 60
 rx_gain = 50
 
+#nof_rx_ant = 1
 #device_name = auto
 #device_args = auto
 #time_adv_nsamples = auto

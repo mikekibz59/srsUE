@@ -47,7 +47,8 @@ typedef struct {
   float prach_gain;
   int pdsch_max_its;
   bool attach_enable_64qam; 
-  int nof_phy_threads;  
+  int nof_phy_threads;
+  uint32_t nof_rx_ant;   
   std::string equalizer_mode; 
   int cqi_max; 
   int cqi_fixed; 

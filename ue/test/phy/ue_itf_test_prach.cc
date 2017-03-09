@@ -30,7 +30,7 @@
 #include "phy/phy.h"
 #include "common/phy_interface.h"
 #include "common/log_stdout.h"
-#include "radio/radio.h"
+#include "radio/radio_multi.h"
 
 /**********************************************************************
  *  Program arguments processing
@@ -325,8 +325,8 @@ private:
 };
 
 
-testmac         my_mac;
-srslte::radio   radio; 
+testmac               my_mac;
+srslte::radio_multi   radio; 
   
 int main(int argc, char *argv[])
 {

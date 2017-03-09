@@ -57,7 +57,7 @@ namespace srsue {
 phch_worker::phch_worker() : tr_exec(10240)
 {
   phy = NULL; 
-  signal_buffer = NULL; 
+  bzero(signal_buffer, sizeof(cf_t*)*SRSLTE_MAX_PORTS);
   
   cell_initiated  = false; 
   pregen_enabled  = false; 
@@ -93,13 +93,15 @@ bool phch_worker::init_cell(srslte_cell_t cell_)
   memcpy(&cell, &cell_, sizeof(srslte_cell_t));
   
   // ue_sync in phy.cc requires a buffer for 3 subframes 
-  signal_buffer = (cf_t*) srslte_vec_malloc(3 * sizeof(cf_t) * SRSLTE_SF_LEN_PRB(cell.nof_prb));
-  if (!signal_buffer) {
-    Error("Allocating memory\n");
-    return false; 
+  for (int i=0;i<phy->args->nof_rx_ant;i++) {
+    signal_buffer[i] = (cf_t*) srslte_vec_malloc(3 * sizeof(cf_t) * SRSLTE_SF_LEN_PRB(cell.nof_prb));
+    if (!signal_buffer[i]) {
+      Error("Allocating memory\n");
+      return false; 
+    }
   }
 
-  if (srslte_ue_dl_init(&ue_dl, cell)) {    
+  if (srslte_ue_dl_init_multi(&ue_dl, cell, phy->args->nof_rx_ant)) {    
     Error("Initiating UE DL\n");
     return false; 
   }
@@ -119,17 +121,19 @@ bool phch_worker::init_cell(srslte_cell_t cell_)
 void phch_worker::free_cell()
 {
   if (cell_initiated) {
-    if (signal_buffer) {
-      free(signal_buffer);
+    for (int i=0;i<phy->args->nof_rx_ant;i++) {
+      if (signal_buffer[i]) {
+        free(signal_buffer[i]);
+      }      
     }
     srslte_ue_dl_free(&ue_dl);
     srslte_ue_ul_free(&ue_ul);
   }
 }
 
-cf_t* phch_worker::get_buffer()
+cf_t* phch_worker::get_buffer(uint32_t antenna_idx)
 {
-  return signal_buffer; 
+  return signal_buffer[antenna_idx]; 
 }
 
 void phch_worker::set_tti(uint32_t tti_, uint32_t tx_tti_)
@@ -269,7 +273,7 @@ void phch_worker::work_imp()
 
   tr_log_end();
   
-  phy->worker_end(tx_tti, signal_ready, signal_buffer, SRSLTE_SF_LEN_PRB(cell.nof_prb), tx_time);
+  phy->worker_end(tx_tti, signal_ready, signal_buffer[0], SRSLTE_SF_LEN_PRB(cell.nof_prb), tx_time);
   
   if (dl_action.decode_enabled && !dl_action.generate_ack_callback) {
     if (dl_mac_grant.rnti_type == SRSLTE_RNTI_PCH) {
@@ -315,7 +319,7 @@ bool phch_worker::extract_fft_and_pdcch_llr() {
       srslte_chest_dl_set_noise_alg(&ue_dl.chest, SRSLTE_NOISE_ALG_PSS);      
     }
   
-    if (srslte_ue_dl_decode_fft_estimate(&ue_dl, signal_buffer, tti%10, &cfi) < 0) {
+    if (srslte_ue_dl_decode_fft_estimate_multi(&ue_dl, signal_buffer, tti%10, &cfi) < 0) {
       Error("Getting PDCCH FFT estimate\n");
       return false; 
     }        
@@ -331,7 +335,7 @@ bool phch_worker::extract_fft_and_pdcch_llr() {
       noise_estimate = 0; 
     }
 
-    if (srslte_pdcch_extract_llr(&ue_dl.pdcch, ue_dl.sf_symbols, ue_dl.ce, noise_estimate, tti%10, cfi)) {
+    if (srslte_pdcch_extract_llr_multi(&ue_dl.pdcch, ue_dl.sf_symbols_m, ue_dl.ce_m, noise_estimate, tti%10, cfi)) {
       Error("Extracting PDCCH LLR\n");
       return false; 
     }
@@ -429,8 +433,8 @@ bool phch_worker::decode_pdsch(srslte_ra_dl_grant_t *grant, uint8_t *payload,
         gettimeofday(&t[1], NULL);
   #endif
         
-        bool ack = srslte_pdsch_decode(&ue_dl.pdsch, &ue_dl.pdsch_cfg, softbuffer, ue_dl.sf_symbols, 
-                                      ue_dl.ce, noise_estimate, rnti, payload) == 0;
+        bool ack = srslte_pdsch_decode_multi(&ue_dl.pdsch, &ue_dl.pdsch_cfg, softbuffer, ue_dl.sf_symbols_m, 
+                                      ue_dl.ce_m, noise_estimate, rnti, payload) == 0;
   #ifdef LOG_EXECTIME
         gettimeofday(&t[2], NULL);
         get_time_interval(t);
@@ -700,7 +704,7 @@ void phch_worker::encode_pusch(srslte_ra_ul_grant_t *grant, uint8_t *payload, ui
                                                 payload, uci_data, 
                                                 softbuffer,
                                                 rnti, 
-                                                signal_buffer)) 
+                                                signal_buffer[0])) 
   {
     Error("Encoding PUSCH\n");
   }
@@ -752,7 +756,7 @@ void phch_worker::encode_pucch()
     gettimeofday(&t[1], NULL);
 #endif
 
-    if (srslte_ue_ul_pucch_encode(&ue_ul, uci_data, last_dl_pdcch_ncce, (tti+4)%10240, signal_buffer)) {
+    if (srslte_ue_ul_pucch_encode(&ue_ul, uci_data, last_dl_pdcch_ncce, (tti+4)%10240, signal_buffer[0])) {
       Error("Encoding PUCCH\n");
     }
 
@@ -784,7 +788,7 @@ void phch_worker::encode_srs()
   char timestr[64];
   timestr[0]='\0';
   
-  if (srslte_ue_ul_srs_encode(&ue_ul, (tti+4)%10240, signal_buffer)) 
+  if (srslte_ue_ul_srs_encode(&ue_ul, (tti+4)%10240, signal_buffer[0])) 
   {
     Error("Encoding SRS\n");
   }

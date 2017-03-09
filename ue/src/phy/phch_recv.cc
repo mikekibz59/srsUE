@@ -43,9 +43,9 @@ phch_recv::phch_recv() {
   running = false; 
 }
 
-void phch_recv::init(srslte::radio* _radio_handler, mac_interface_phy *_mac, rrc_interface_phy *_rrc,
+void phch_recv::init(srslte::radio_multi* _radio_handler, mac_interface_phy *_mac, rrc_interface_phy *_rrc,
                      prach* _prach_buffer, srslte::thread_pool* _workers_pool,
-                     phch_common* _worker_com, srslte::log* _log_h, uint32_t prio)
+                     phch_common* _worker_com, srslte::log* _log_h, uint32_t nof_rx_antennas_, uint32_t prio)
 {
   radio_h      = _radio_handler;
   log_h        = _log_h;     
@@ -54,6 +54,8 @@ void phch_recv::init(srslte::radio* _radio_handler, mac_interface_phy *_mac, rrc
   workers_pool = _workers_pool;
   worker_com   = _worker_com;
   prach_buffer = _prach_buffer; 
+  nof_rx_antennas = nof_rx_antennas_;
+
   tx_mutex_cnt = 0; 
   running      = true; 
   phy_state    = IDLE; 
@@ -61,7 +63,9 @@ void phch_recv::init(srslte::radio* _radio_handler, mac_interface_phy *_mac, rrc
   cell_is_set  = false; 
   sync_sfn_cnt = 0; 
   
-  sf_buffer_sfn = (cf_t*) srslte_vec_malloc(3*sizeof(cf_t)*SRSLTE_SF_LEN_PRB(100)); 
+  for (int i=0;i<nof_rx_antennas;i++) { 
+    sf_buffer_sfn[i] = (cf_t*) srslte_vec_malloc(sizeof(cf_t)*3*SRSLTE_SF_LEN_PRB(100));
+  }
   
   nof_tx_mutex = MUTEX_X_WORKER*workers_pool->get_nof_workers();
   worker_com->set_nof_mutex(nof_tx_mutex);
@@ -72,7 +76,11 @@ void phch_recv::init(srslte::radio* _radio_handler, mac_interface_phy *_mac, rrc
 void phch_recv::stop() {
   running = false; 
   wait_thread_finish();
-  free(sf_buffer_sfn);
+  for (int i=0;i<nof_rx_antennas;i++) {
+    if (sf_buffer_sfn[i]) {
+      free(sf_buffer_sfn[i]);
+    }
+  }
 }
 
 void phch_recv::set_agc_enable(bool enable)
@@ -80,9 +88,9 @@ void phch_recv::set_agc_enable(bool enable)
   do_agc = enable;
 }
 
-int radio_recv_wrapper_cs(void *h, void *data, uint32_t nsamples, srslte_timestamp_t *rx_time)
+int radio_recv_wrapper_cs(void *h, cf_t *data[SRSLTE_MAX_PORTS], uint32_t nsamples, srslte_timestamp_t *rx_time)
 {
-  srslte::radio *radio_h = (srslte::radio*) h;
+  srslte::radio_multi *radio_h = (srslte::radio_multi*) h;
   if (radio_h->rx_now(data, nsamples, rx_time)) {
     int offset = nsamples-radio_h->get_tti_len();
     if (abs(offset)<10 && offset != 0) {
@@ -97,7 +105,7 @@ int radio_recv_wrapper_cs(void *h, void *data, uint32_t nsamples, srslte_timesta
 }
 
 double callback_set_rx_gain(void *h, double gain) {
-  srslte::radio *radio_handler = (srslte::radio*) h;
+  srslte::radio_multi *radio_handler = (srslte::radio_multi*) h;
   return radio_handler->set_rx_gain_th(gain);
 }
 
@@ -137,7 +145,7 @@ bool phch_recv::init_cell() {
   cell_is_set = false;
   if (!srslte_ue_mib_init(&ue_mib, cell)) 
   {
-    if (!srslte_ue_sync_init(&ue_sync, cell, radio_recv_wrapper_cs, radio_h)) 
+    if (!srslte_ue_sync_init_multi(&ue_sync, cell, radio_recv_wrapper_cs, nof_rx_antennas, radio_h)) 
     {
 
       // Set options defined in expert section 
@@ -186,7 +194,7 @@ bool phch_recv::cell_search(int force_N_id_2)
   bzero(found_cells, 3*sizeof(srslte_ue_cellsearch_result_t));
 
   log_h->console("Searching for cell...\n");
-  if (srslte_ue_cellsearch_init(&cs, SRSLTE_DEFAULT_MAX_FRAMES_PSS, radio_recv_wrapper_cs, radio_h)) {
+  if (srslte_ue_cellsearch_init_multi(&cs, SRSLTE_DEFAULT_MAX_FRAMES_PSS, radio_recv_wrapper_cs, nof_rx_antennas, radio_h)) {
     Error("Initiating UE cell search\n");
     return false; 
   }
@@ -237,7 +245,7 @@ bool phch_recv::cell_search(int force_N_id_2)
   
   srslte_ue_mib_sync_t ue_mib_sync; 
 
-  if (srslte_ue_mib_sync_init(&ue_mib_sync, cell.id, cell.cp, radio_recv_wrapper_cs, radio_h)) {
+  if (srslte_ue_mib_sync_init_multi(&ue_mib_sync, cell.id, cell.cp, radio_recv_wrapper_cs, nof_rx_antennas, radio_h)) {
     Error("Initiating UE MIB synchronization\n");
     return false; 
   }
@@ -286,7 +294,7 @@ int phch_recv::sync_sfn(void) {
   uint8_t bch_payload[SRSLTE_BCH_PAYLOAD_LEN];
 
   srslte_ue_sync_decode_sss_on_track(&ue_sync, true);
-  ret = srslte_ue_sync_zerocopy(&ue_sync, sf_buffer_sfn);
+  ret = srslte_ue_sync_zerocopy_multi(&ue_sync, sf_buffer_sfn);
   if (ret < 0) {
     Error("Error calling ue_sync_get_buffer");      
     return -1;
@@ -296,7 +304,7 @@ int phch_recv::sync_sfn(void) {
     if (srslte_ue_sync_get_sfidx(&ue_sync) == 0) {
       int sfn_offset=0;
       Info("SYNC:  Decoding MIB...\n");
-      int n = srslte_ue_mib_decode(&ue_mib, sf_buffer_sfn, bch_payload, NULL, &sfn_offset);
+      int n = srslte_ue_mib_decode(&ue_mib, sf_buffer_sfn[0], bch_payload, NULL, &sfn_offset);
       if (n < 0) {
         Error("Error decoding MIB while synchronising SFN");      
         return -1; 
@@ -328,7 +336,7 @@ void phch_recv::run_thread()
 {
   int sync_res; 
   phch_worker *worker = NULL;
-  cf_t *buffer = NULL;
+  cf_t *buffer[SRSLTE_MAX_PORTS];
   while(running) {
     switch(phy_state) {
       case CELL_SEARCH:
@@ -390,9 +398,12 @@ void phch_recv::run_thread()
         tti = (tti+1)%10240;        
         worker = (phch_worker*) workers_pool->wait_worker(tti);
         sync_res = 0; 
-        if (worker) {          
-          buffer = worker->get_buffer();
-          sync_res = srslte_ue_sync_zerocopy(&ue_sync, buffer); 
+        if (worker) {       
+          for (int i=0;i<nof_rx_antennas;i++) {
+            buffer[i] = worker->get_buffer(i);
+          }
+
+          sync_res = srslte_ue_sync_zerocopy_multi(&ue_sync, buffer); 
           if (sync_res == 1) {
             
             log_h->step(tti);
@@ -420,12 +431,15 @@ void phch_recv::run_thread()
 
             // Check if we need to TX a PRACH 
             if (prach_buffer->is_ready_to_send(tti)) {
+              printf("send\n");
               srslte_timestamp_copy(&tx_time_prach, &rx_time);
               srslte_timestamp_add(&tx_time_prach, 0, prach::tx_advance_sf*1e-3);
               prach_buffer->send(radio_h, ul_dl_factor*metrics.cfo/15000, worker_com->pathloss, tx_time_prach);
+              printf("tx end\n");
               radio_h->tx_end();            
               worker_com->p0_preamble = prach_buffer->get_p0_preamble();
               worker_com->cur_radio_power = SRSLTE_MIN(SRSLTE_PC_MAX, worker_com->pathloss + worker_com->p0_preamble);
+              printf("sent ok\n");
             }            
             workers_pool->start_worker(worker);             
             // Notify RRC in-sync every 1 frame
