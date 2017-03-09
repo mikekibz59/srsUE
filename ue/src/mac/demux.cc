@@ -60,7 +60,9 @@ bool demux::get_uecrid_successful() {
 
 void demux::deallocate(uint8_t* payload_buffer_ptr)
 {
-  pdus.deallocate(payload_buffer_ptr);
+  if (payload_buffer_ptr != bcch_buffer) {
+    pdus.deallocate(payload_buffer_ptr);
+  }
 }
 
 uint8_t* demux::request_buffer(uint32_t pid, uint32_t len)
