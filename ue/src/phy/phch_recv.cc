@@ -268,16 +268,14 @@ bool phch_recv::cell_search(int force_N_id_2)
                                   bch_payload, &cell.nof_ports, &sfn_offset); 
   radio_h->stop_rx();
   last_gain = srslte_agc_get_gain(&ue_mib_sync.ue_sync.agc);
+  cellsearch_cfo = srslte_ue_sync_get_cfo(&ue_mib_sync.ue_sync);
   srslte_ue_mib_sync_free(&ue_mib_sync);
 
   if (ret == 1) {
     srslte_pbch_mib_unpack(bch_payload, &cell, NULL);
     worker_com->set_cell(cell);
     srslte_cell_fprint(stdout, &cell, 0);
-    
-    // Update CFO estimate
-    cellsearch_cfo = srslte_ue_sync_get_cfo(&ue_mib_sync.ue_sync);
-    
+
     srslte_bit_pack_vector(bch_payload, bch_payload_bits, SRSLTE_BCH_PAYLOAD_LEN);
     mac->bch_decoded_ok(bch_payload_bits, SRSLTE_BCH_PAYLOAD_LEN/8);
     return true;     
