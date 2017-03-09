@@ -151,6 +151,7 @@ private:
   
   phy_cfg_t  config;
   phy_args_t *args;
+  phy_args_t default_args; 
   
   /* Current time advance */
   uint32_t     n_ta;

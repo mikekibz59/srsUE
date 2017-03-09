@@ -105,7 +105,7 @@ bool phy::init(srslte::radio_multi* radio_handler_, mac_interface_phy *mac, rrc_
   radio_handler = radio_handler_;
   
   if (!phy_args) {
-    args = new phy_args_t; 
+    args = &default_args; 
     set_default_args(args);
   } else {
     args = phy_args;
