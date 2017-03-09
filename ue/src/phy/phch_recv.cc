@@ -431,15 +431,12 @@ void phch_recv::run_thread()
 
             // Check if we need to TX a PRACH 
             if (prach_buffer->is_ready_to_send(tti)) {
-              printf("send\n");
               srslte_timestamp_copy(&tx_time_prach, &rx_time);
               srslte_timestamp_add(&tx_time_prach, 0, prach::tx_advance_sf*1e-3);
               prach_buffer->send(radio_h, ul_dl_factor*metrics.cfo/15000, worker_com->pathloss, tx_time_prach);
-              printf("tx end\n");
               radio_h->tx_end();            
               worker_com->p0_preamble = prach_buffer->get_p0_preamble();
               worker_com->cur_radio_power = SRSLTE_MIN(SRSLTE_PC_MAX, worker_com->pathloss + worker_com->p0_preamble);
-              printf("sent ok\n");
             }            
             workers_pool->start_worker(worker);             
             // Notify RRC in-sync every 1 frame
