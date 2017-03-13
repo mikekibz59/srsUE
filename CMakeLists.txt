@@ -32,6 +32,7 @@ include(SRSUEVersion) #sets version information
 # Options
 ########################################################################
 option(ENABLE_GUI "ENABLE_GUI" ON)
+option(RPATH      "RPATH" ON)
 set(GCC_ARCH native CACHE STRING "GCC compile for specific architecture.")
 
 ########################################################################

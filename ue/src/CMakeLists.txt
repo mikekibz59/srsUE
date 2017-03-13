@@ -23,6 +23,10 @@ add_subdirectory(phy)
 add_subdirectory(mac)
 add_subdirectory(upper)
 
+if (RPATH)
+  SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+endif (RPATH)
+
 add_executable(ue main.cc ue.cc metrics_stdout.cc)
 target_link_libraries(ue    srsue_upper
                             srsue_common
