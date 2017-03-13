@@ -25,6 +25,7 @@ add_subdirectory(upper)
 
 if (RPATH)
   SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+  set_target_properties(ue PROPERTIES INSTALL_RPATH ".")
 endif (RPATH)
 
 add_executable(ue main.cc ue.cc metrics_stdout.cc)
