@@ -25,7 +25,6 @@ add_subdirectory(upper)
 
 if (RPATH)
   SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
-  set_target_properties(ue PROPERTIES INSTALL_RPATH ".")
 endif (RPATH)
 
 add_executable(ue main.cc ue.cc metrics_stdout.cc)
@@ -39,6 +38,9 @@ target_link_libraries(ue    srsue_upper
                             ${CMAKE_THREAD_LIBS_INIT}
                             ${Boost_LIBRARIES})
 
+if (RPATH)
+  set_target_properties(ue PROPERTIES INSTALL_RPATH ".")
+endif (RPATH)
 
 ########################################################################
 # Option to run command after build (useful for remote builds)
