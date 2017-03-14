@@ -10153,7 +10153,70 @@ LIBLTE_ERROR_ENUM liblte_rrc_unpack_sys_info_block_type_8_ie(uint8              
 
     Document Reference: 36.331 v10.0.0 Section 6.3.1
 *********************************************************************/
-// FIXME
+LIBLTE_ERROR_ENUM liblte_rrc_pack_sys_info_block_type_9_ie(LIBLTE_RRC_SYS_INFO_BLOCK_TYPE_9_STRUCT  *sib9,
+                                                           uint8                                   **ie_ptr)
+{
+    LIBLTE_ERROR_ENUM err = LIBLTE_ERROR_INVALID_INPUTS;
+    uint32            i;
+
+    if(sib9   != NULL &&
+       ie_ptr != NULL)
+    {
+        // Extension indicator
+        liblte_value_2_bits(0, ie_ptr, 1);
+
+        // Optional indicators
+        liblte_value_2_bits(sib9->hnb_name_present,   ie_ptr, 1);
+
+        if(true == sib9->hnb_name_present) {
+            // Dynamic octet string - hnb_name
+            liblte_value_2_bits(sib9->hnb_name_size - 1, ie_ptr, 6);
+
+            // Octets
+            for(i=0;i<sib9->hnb_name_size;i++) {
+              liblte_value_2_bits(sib9->hnb_name[i], ie_ptr, 8);
+            }
+        }
+
+        err = LIBLTE_SUCCESS;
+    }
+
+    return(err);
+}
+LIBLTE_ERROR_ENUM liblte_rrc_unpack_sys_info_block_type_9_ie(uint8                                   **ie_ptr,
+                                                             LIBLTE_RRC_SYS_INFO_BLOCK_TYPE_9_STRUCT  *sib9)
+{
+    LIBLTE_ERROR_ENUM err = LIBLTE_ERROR_INVALID_INPUTS;
+    bool              ext_ind;
+    uint32            i;
+
+    if(ie_ptr != NULL &&
+       sib9   != NULL)
+    {
+        // Extension indicator
+        ext_ind = liblte_bits_2_value(ie_ptr, 1);
+
+        // Optional indicators
+        sib9->hnb_name_present   = liblte_bits_2_value(ie_ptr, 1);
+
+        if(true == sib9->hnb_name_present) {
+            // Dynamic octet string - hnb_name
+            // Length
+            sib9->hnb_name_size = liblte_bits_2_value(ie_ptr, 6) + 1;
+
+            // Octets
+            for(i=0;i<sib9->hnb_name_size;i++) {
+              sib9->hnb_name[i] = liblte_bits_2_value(ie_ptr, 8);
+            }
+        }
+
+        liblte_rrc_consume_noncrit_extension(ext_ind, __func__, ie_ptr);
+
+        err = LIBLTE_SUCCESS;
+    }
+
+    return(err);
+}
 
 /*********************************************************************
     IE Name: System Information Block Type 10
@@ -10914,10 +10977,13 @@ LIBLTE_ERROR_ENUM liblte_rrc_pack_sys_info_msg(LIBLTE_RRC_SYS_INFO_MSG_STRUCT *s
                     err = liblte_rrc_pack_sys_info_block_type_8_ie((LIBLTE_RRC_SYS_INFO_BLOCK_TYPE_8_STRUCT *)&sibs->sibs[i].sib,
                                                                    &msg_ptr);
                     break;
+                case LIBLTE_RRC_SYS_INFO_BLOCK_TYPE_9:
+                    err = liblte_rrc_pack_sys_info_block_type_9_ie((LIBLTE_RRC_SYS_INFO_BLOCK_TYPE_9_STRUCT *)&sibs->sibs[i].sib,
+                                                                   &msg_ptr);
+                    break;
                 case LIBLTE_RRC_SYS_INFO_BLOCK_TYPE_5:
                 case LIBLTE_RRC_SYS_INFO_BLOCK_TYPE_6:
                 case LIBLTE_RRC_SYS_INFO_BLOCK_TYPE_7:
-                case LIBLTE_RRC_SYS_INFO_BLOCK_TYPE_9:
                 case LIBLTE_RRC_SYS_INFO_BLOCK_TYPE_10:
                 case LIBLTE_RRC_SYS_INFO_BLOCK_TYPE_11:
                 default:
@@ -11045,6 +11111,9 @@ LIBLTE_ERROR_ENUM liblte_rrc_unpack_sys_info_msg(LIBLTE_BIT_MSG_STRUCT          
                                                                          (LIBLTE_RRC_SYS_INFO_BLOCK_TYPE_8_STRUCT *)&sibs->sibs[i].sib);
                         break;
                     case LIBLTE_RRC_SYS_INFO_BLOCK_TYPE_9:
+                        err = liblte_rrc_unpack_sys_info_block_type_9_ie(&msg_ptr,
+                                                                         (LIBLTE_RRC_SYS_INFO_BLOCK_TYPE_9_STRUCT *)&sibs->sibs[i].sib);
+                        break;
                     case LIBLTE_RRC_SYS_INFO_BLOCK_TYPE_10:
                     case LIBLTE_RRC_SYS_INFO_BLOCK_TYPE_11:
                     default:
