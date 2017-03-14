@@ -5475,8 +5475,18 @@ LIBLTE_ERROR_ENUM liblte_rrc_unpack_sys_info_block_type_8_ie(uint8              
 // Defines
 // Enums
 // Structs
+// lb:1, ub:48
+typedef struct{
+  uint32 hnb_name_size;
+  uint8  hnb_name[48];
+  bool   hnb_name_present;
+}LIBLTE_RRC_SYS_INFO_BLOCK_TYPE_9_STRUCT;
+
 // Functions
-// FIXME
+LIBLTE_ERROR_ENUM liblte_rrc_pack_sys_info_block_type_9_ie(LIBLTE_RRC_SYS_INFO_BLOCK_TYPE_9_STRUCT  *sib9,
+                                                           uint8                                   **ie_ptr);
+LIBLTE_ERROR_ENUM liblte_rrc_unpack_sys_info_block_type_9_ie(uint8                                   **ie_ptr,
+                                                             LIBLTE_RRC_SYS_INFO_BLOCK_TYPE_9_STRUCT  *sib9);
 
 /*********************************************************************
     IE Name: System Information Block Type 10
@@ -5850,6 +5860,7 @@ typedef union{
     LIBLTE_RRC_SYS_INFO_BLOCK_TYPE_6_STRUCT  sib6;
     LIBLTE_RRC_SYS_INFO_BLOCK_TYPE_7_STRUCT  sib7;
     LIBLTE_RRC_SYS_INFO_BLOCK_TYPE_8_STRUCT  sib8;
+    LIBLTE_RRC_SYS_INFO_BLOCK_TYPE_9_STRUCT  sib9;
     LIBLTE_RRC_SYS_INFO_BLOCK_TYPE_13_STRUCT sib13;
 }LIBLTE_RRC_SYS_INFO_BLOCK_TYPE_UNION;
 typedef struct{
