@@ -1656,6 +1656,8 @@ LIBLTE_ERROR_ENUM liblte_rrc_unpack_meas_config_ie(uint8                        
             }
         }
 
+        liblte_rrc_consume_noncrit_extension(ext, __func__, ie_ptr);
+
         err = LIBLTE_SUCCESS;
     }
 
