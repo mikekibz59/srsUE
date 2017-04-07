@@ -35,6 +35,8 @@
 #include <iomanip>
 #include <iostream>
 
+#include <stdio.h>
+
 using namespace std;
 
 namespace srsue{
@@ -131,10 +133,7 @@ void metrics_stdout::print_metrics()
   cout << endl;
 
   if(metrics.rf.rf_error) {
-    cout << "RF status:"
-         << "  O=" << metrics.rf.rf_o
-         << ", U=" << metrics.rf.rf_u
-         << ", L=" << metrics.rf.rf_l << endl;
+    printf("RF status: O=%d, U=%d, L=%d\n", metrics.rf.rf_o, metrics.rf.rf_u, metrics.rf.rf_l);
   }
   
 }

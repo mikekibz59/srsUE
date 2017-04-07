@@ -47,6 +47,8 @@ bool radio::init(char *args, char *devname)
   cur_tx_srate = 0; 
   is_start_of_burst = true; 
   
+  // Suppress radio stdout 
+  srslte_rf_suppress_stdout(&rf_device);
   
   tx_adv_auto = true; 
   // Set default preamble length each known device
