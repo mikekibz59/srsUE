@@ -823,6 +823,10 @@ void rlc_am::handle_data_pdu_segment(uint8_t *payload, uint32_t nof_bytes, rlc_a
 
   rlc_amd_rx_pdu_t segment;
   segment.buf = pool->allocate();
+  if (!segment.buf) {
+    log->console("Fatal Error: Could not allocate PDU in handle_data_pdu_segment()\n");
+    exit(-1);
+  }
   memcpy(segment.buf->msg, payload, nof_bytes);
   segment.buf->N_bytes = nof_bytes;
   segment.header       = header;
@@ -986,6 +990,10 @@ void rlc_am::reassemble_rx_sdus()
       rx_sdu->set_timestamp();
       pdcp->write_pdu(lcid, rx_sdu);
       rx_sdu = pool->allocate();
+      if (!rx_sdu) {
+        log->console("Fatal Error: Could not allocate PDU in reassemble_rx_sdus() (3)\n");
+      exit(-1);
+      }
     }
 
     // Move the rx_window
@@ -1084,6 +1092,10 @@ bool rlc_am::add_segment_and_check(rlc_amd_rx_pdu_segments_t *pdu, rlc_amd_rx_pd
 
   // Copy data
   byte_buffer_t *full_pdu = pool->allocate();
+  if (!full_pdu) {
+    log->console("Fatal Error: Could not allocate PDU in add_segment_and_check()\n");
+    exit(-1);
+  }
   for(it = pdu->segments.begin(); it != pdu->segments.end(); it++) {
     memcpy(&full_pdu->msg[full_pdu->N_bytes], it->buf->msg, it->buf->N_bytes);
     full_pdu->N_bytes += it->buf->N_bytes;
