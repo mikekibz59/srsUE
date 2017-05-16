@@ -48,6 +48,10 @@ typedef struct {
   int pdsch_max_its;
   bool attach_enable_64qam; 
   int nof_phy_threads;
+  
+  int worker_cpu_mask;
+  int sync_cpu_affinity;
+  
   uint32_t nof_rx_ant;   
   std::string equalizer_mode; 
   int cqi_max; 

@@ -47,7 +47,7 @@ public:
   phch_recv();
   void init(srslte::radio_multi* radio_handler, mac_interface_phy *mac,rrc_interface_phy *rrc,
             prach *prach_buffer, srslte::thread_pool *_workers_pool,
-            phch_common *_worker_com, srslte::log* _log_h, uint32_t nof_rx_antennas, uint32_t prio);
+            phch_common *_worker_com, srslte::log* _log_h, uint32_t nof_rx_antennas, uint32_t prio, int sync_cpu_affinity = -1);
   void stop();
   void set_agc_enable(bool enable);
 

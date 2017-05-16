@@ -45,7 +45,7 @@ phch_recv::phch_recv() {
 
 void phch_recv::init(srslte::radio_multi* _radio_handler, mac_interface_phy *_mac, rrc_interface_phy *_rrc,
                      prach* _prach_buffer, srslte::thread_pool* _workers_pool,
-                     phch_common* _worker_com, srslte::log* _log_h, uint32_t nof_rx_antennas_, uint32_t prio)
+                     phch_common* _worker_com, srslte::log* _log_h, uint32_t nof_rx_antennas_, uint32_t prio, int sync_cpu_affinity)
 {
   radio_h      = _radio_handler;
   log_h        = _log_h;     
@@ -69,8 +69,13 @@ void phch_recv::init(srslte::radio_multi* _radio_handler, mac_interface_phy *_ma
   
   nof_tx_mutex = MUTEX_X_WORKER*workers_pool->get_nof_workers();
   worker_com->set_nof_mutex(nof_tx_mutex);
-    
-  start(prio);
+  if(sync_cpu_affinity < 0){
+    start(prio);
+  } else {
+    start_cpu(prio, sync_cpu_affinity);
+  }
+  
+  
 }
 
 void phch_recv::stop() {
