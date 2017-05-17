@@ -85,7 +85,7 @@ public:
       available.pop();
       
       if (available.size() < capacity/20) {
-        printf("Warning buffer pool capacity is %f %%\n", (float) available.size()/capacity);
+        printf("Warning buffer pool capacity is %f %%\n", (float) 100*available.size()/capacity);
       }
       
     } else {
