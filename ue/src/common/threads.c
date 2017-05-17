@@ -50,7 +50,7 @@ bool threads_new_rt_cpu(pthread_t *thread, void *(*start_routine) (void*), void 
   
   pthread_attr_t attr;
   struct sched_param param;
-
+  cpu_set_t cpuset;
   if (prio_offset >= 0) {
     param.sched_priority = sched_get_priority_max(SCHED_FIFO) - prio_offset;  
     pthread_attr_init(&attr);
@@ -69,27 +69,25 @@ bool threads_new_rt_cpu(pthread_t *thread, void *(*start_routine) (void*), void 
     if(cpu > 50) {
       int mask;
       mask = cpu/100;
-      cpu_set_t cpuset;            
+                  
       CPU_ZERO(&cpuset);	
       for(int i = 0; i < 8;i++){
         if(((mask >> i) & 0x01) == 1){
           printf("Setting this worker with affinity to core %d\n", i);
           CPU_SET((size_t) i , &cpuset);        
-        }
-        if(pthread_attr_setaffinity_np(&attr, sizeof(cpu_set_t), &cpuset)) {
-              perror("pthread_attr_setaffinity_np");
         }     
       }  
     } else {
-        cpu_set_t cpuset; 
         CPU_ZERO(&cpuset);
         CPU_SET((size_t) cpu, &cpuset);
         printf("Setting CPU affinity to cpu_id=%d\n", cpu);
-        if (pthread_attr_setaffinity_np(&attr, sizeof(cpu_set_t), &cpuset)) {
-          perror("pthread_attr_setaffinity_np");
-        }
     }
-  } 
+    
+    if(pthread_attr_setaffinity_np(&attr, sizeof(cpu_set_t), &cpuset)) {
+            perror("pthread_attr_setaffinity_np");
+      }
+  }
+
   int err = pthread_create(thread, prio_offset >= 0 ? &attr : NULL, start_routine, arg);
   if (err) {
     if (EPERM == err) {
