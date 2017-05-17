@@ -37,11 +37,19 @@
 namespace srslte {
  
   
-void thread_pool::worker::setup(uint32_t id, thread_pool *parent, uint32_t prio)
+void thread_pool::worker::setup(uint32_t id, thread_pool *parent, uint32_t prio, uint32_t mask)
 {
   my_id = id; 
-  my_parent = parent;   
-  start(prio);
+  my_parent = parent;
+  if(mask == 255)
+  {
+    start(prio);
+  }
+  else
+  {
+    start_cpu_mask(prio,mask);
+  }
+  
 }
 
 void thread_pool::worker::run_thread()
@@ -88,7 +96,7 @@ thread_pool::thread_pool(uint32_t max_workers_)  :
   nof_workers = 0; 
 }
 
-void thread_pool::init_worker(uint32_t id, worker *obj, uint32_t prio)
+void thread_pool::init_worker(uint32_t id, worker *obj, uint32_t prio, uint32_t mask)
 {
   if (id < max_workers) {
     if (id >= nof_workers) {
@@ -97,7 +105,7 @@ void thread_pool::init_worker(uint32_t id, worker *obj, uint32_t prio)
     pthread_mutex_lock(&mutex_queue);   
     workers[id] = obj; 
     available_workers.push(obj);    
-    obj->setup(id, this, prio);
+    obj->setup(id, this, prio, mask);
     pthread_cond_signal(&cvar_queue);
     pthread_mutex_unlock(&mutex_queue);    
   }

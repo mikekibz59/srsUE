@@ -50,7 +50,7 @@ public:
   class worker : public thread
   {
   public:
-    void setup(uint32_t id, thread_pool *parent, uint32_t prio=0);
+    void setup(uint32_t id, thread_pool *parent, uint32_t prio=0, uint32_t mask = 255);
     void stop();
     uint32_t get_id();
     void release();
@@ -67,7 +67,7 @@ public:
     
   
   thread_pool(uint32_t nof_workers);  
-  void    init_worker(uint32_t id, worker*, uint32_t prio = 0);              
+  void    init_worker(uint32_t id, worker*, uint32_t prio = 0, uint32_t mask = 255);              
   void    stop();
   worker* wait_worker();              
   worker* wait_worker(uint32_t tti);              

@@ -120,13 +120,13 @@ bool phy::init(srslte::radio_multi* radio_handler_, mac_interface_phy *mac, rrc_
   // Add workers to workers pool and start threads
   for (int i=0;i<nof_workers;i++) {
     workers[i].set_common(&workers_common);
-    workers_pool.init_worker(i, &workers[i], WORKERS_THREAD_PRIO);    
+    workers_pool.init_worker(i, &workers[i], WORKERS_THREAD_PRIO, args->worker_cpu_mask);    
   }
   prach_buffer.init(&config.common.prach_cnfg, args, log_h);
   workers_common.init(&config, args, log_h, radio_handler, mac);
   
   // Warning this must be initialized after all workers have been added to the pool
-  sf_recv.init(radio_handler, mac, rrc, &prach_buffer, &workers_pool, &workers_common, log_h, args->nof_rx_ant, SF_RECV_THREAD_PRIO);
+  sf_recv.init(radio_handler, mac, rrc, &prach_buffer, &workers_pool, &workers_common, log_h, args->nof_rx_ant, SF_RECV_THREAD_PRIO, args->sync_cpu_affinity);
 
   // Disable UL signal pregeneration until the attachment 
   enable_pregen_signals(false);

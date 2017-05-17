@@ -41,12 +41,16 @@ bool threads_new_rt_prio(pthread_t *thread, void *(*start_routine) (void*), void
   return threads_new_rt_cpu(thread, start_routine, arg, -1, prio_offset);
 }
 
+bool threads_new_rt_mask(pthread_t *thread, void *(*start_routine) (void*), void *arg,int mask, int prio_offset){
+return threads_new_rt_cpu(thread, start_routine, arg, mask*100, prio_offset);// we multiply mask by 100 to distinguish it from a single cpu core id
+}
+
 bool threads_new_rt_cpu(pthread_t *thread, void *(*start_routine) (void*), void *arg, int cpu, int prio_offset) {
   bool ret = false; 
   
   pthread_attr_t attr;
   struct sched_param param;
-
+  cpu_set_t cpuset;
   if (prio_offset >= 0) {
     param.sched_priority = sched_get_priority_max(SCHED_FIFO) - prio_offset;  
     pthread_attr_init(&attr);
@@ -61,15 +65,29 @@ bool threads_new_rt_cpu(pthread_t *thread, void *(*start_routine) (void*), void 
       fprintf(stderr, "Error not enough privileges to set Scheduling priority\n");
     }
   }
-  if (cpu != -1) {
-    cpu_set_t cpuset; 
-    CPU_ZERO(&cpuset);
-    CPU_SET((size_t) cpu, &cpuset);
-    printf("Setting CPU affinity to cpu_id=%d\n", cpu);
-    if (pthread_attr_setaffinity_np(&attr, sizeof(cpu_set_t), &cpuset)) {
-      perror("pthread_attr_setaffinity_np");
+  if(cpu != -1) {
+    if(cpu > 50) {
+      int mask;
+      mask = cpu/100;
+                  
+      CPU_ZERO(&cpuset);	
+      for(int i = 0; i < 8;i++){
+        if(((mask >> i) & 0x01) == 1){
+          printf("Setting this worker with affinity to core %d\n", i);
+          CPU_SET((size_t) i , &cpuset);        
+        }     
+      }  
+    } else {
+        CPU_ZERO(&cpuset);
+        CPU_SET((size_t) cpu, &cpuset);
+        printf("Setting CPU affinity to cpu_id=%d\n", cpu);
     }
-  } 
+    
+    if(pthread_attr_setaffinity_np(&attr, sizeof(cpu_set_t), &cpuset)) {
+            perror("pthread_attr_setaffinity_np");
+      }
+  }
+
   int err = pthread_create(thread, prio_offset >= 0 ? &attr : NULL, start_routine, arg);
   if (err) {
     if (EPERM == err) {

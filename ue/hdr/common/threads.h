@@ -37,6 +37,7 @@
   bool threads_new_rt(pthread_t *thread, void *(*start_routine) (void*), void *arg);
   bool threads_new_rt_prio(pthread_t *thread, void *(*start_routine) (void*), void *arg, int prio_offset);
   bool threads_new_rt_cpu(pthread_t *thread, void *(*start_routine) (void*), void *arg, int cpu, int prio_offset);
+  bool threads_new_rt_mask(pthread_t *thread, void *(*start_routine) (void*), void *arg, int mask, int prio_offset);
   void threads_print_self();
 
 #ifdef __cplusplus
@@ -54,6 +55,9 @@ public:
   bool start_cpu(int prio, int cpu) {
     return threads_new_rt_cpu(&_thread, thread_function_entry, this, cpu, prio);    
   }
+   bool start_cpu_mask(int prio, int mask){
+     return threads_new_rt_mask(&_thread, thread_function_entry, this, mask, prio);
+}
   void print_priority() {
     threads_print_self();
   }
