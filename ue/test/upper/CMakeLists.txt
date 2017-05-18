@@ -19,43 +19,12 @@
 
 # IP traffic over RLC test 
 add_executable(ip_test ip_test.cc)
-target_link_libraries(ip_test srsue_upper 
-                              srsue_common
-                              srsue_mac
+target_link_libraries(ip_test srsue_mac
                               srsue_phy
-                              srsue_radio
-                              lte
                               ${SRSLTE_LIBRARIES}
+                              ${LIBLTE_LIBRARY}
                               ${CMAKE_THREAD_LIBS_INIT}
                               ${Boost_LIBRARIES})
-
-add_executable(rlc_am_data_test rlc_am_data_test.cc)
-target_link_libraries(rlc_am_data_test srsue_upper)
-add_test(rlc_am_data_test rlc_am_data_test)
-
-add_executable(rlc_am_control_test rlc_am_control_test.cc)
-target_link_libraries(rlc_am_control_test srsue_upper)
-add_test(rlc_am_control_test rlc_am_control_test)
-
-add_executable(rlc_am_test rlc_am_test.cc)
-target_link_libraries(rlc_am_test srsue_upper)
-add_test(rlc_am_test rlc_am_test)
-
-add_executable(rlc_um_data_test rlc_um_data_test.cc)
-target_link_libraries(rlc_um_data_test srsue_upper)
-add_test(rlc_um_data_test rlc_um_data_test)
-
-add_executable(rlc_um_test rlc_um_test.cc)
-target_link_libraries(rlc_um_test srsue_upper)
-add_test(rlc_um_test rlc_um_test)
-  
-add_executable(usim_test usim_test.cc)
-target_link_libraries(usim_test srsue_upper)
-add_test(usim_test usim_test)
-
-add_executable(rrc_reconfig_test rrc_reconfig_test.cc)
-target_link_libraries(rrc_reconfig_test srsue_upper)
-add_test(rrc_reconfig_test rrc_reconfig_test)
 
 ########################################################################
 # Option to run command after build (useful for remote builds)
