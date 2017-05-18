@@ -17,24 +17,18 @@
 # and at http://www.gnu.org/licenses/.
 #
 
-add_subdirectory(radio)
-add_subdirectory(common)
 add_subdirectory(phy)
 add_subdirectory(mac)
-add_subdirectory(upper)
 
 if (RPATH)
   SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
 endif (RPATH)
 
 add_executable(ue main.cc ue.cc metrics_stdout.cc)
-target_link_libraries(ue    srsue_upper
-                            srsue_common
-                            srsue_mac
+target_link_libraries(ue    srsue_mac
                             srsue_phy
-                            srsue_radio
-                            lte
                             ${SRSLTE_LIBRARIES}
+                            ${LIBLTE_LIBRARY}
                             ${CMAKE_THREAD_LIBS_INIT}
                             ${Boost_LIBRARIES})
 

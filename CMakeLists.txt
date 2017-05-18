@@ -107,23 +107,8 @@ endif()
 # Find dependencies
 ########################################################################
 find_package(srsLTE REQUIRED)
+find_package(LIBLTE REQUIRED)
 find_package(Threads REQUIRED)
-find_package(Polarssl)
-
-if (POLARSSL_FOUND) 
-  set(POLAR_INCLUDE_DIRS "${POLARSSL_INCLUDE_DIRS}")
-  set(POLAR_LIBRARIES    "${POLARSSL_LIBRARIES}")
-  add_definitions(-DHAVE_POLARSSL)
-else(POLARSSL_FOUND) 
-  find_package(MbedTLS)
-  if (MBEDTLS_FOUND) 
-    set(POLAR_INCLUDE_DIRS "${MBEDTLS_INCLUDE_DIRS}")
-    set(POLAR_LIBRARIES    "${MBEDTLS_LIBRARIES}")
-    add_definitions(-DHAVE_MBEDTLS)
-  else(MBEDTLS_FOUND) 
-    message(FATAL_ERROR "Either polarssl or mbedtls is required to compile srsUE")
-  endif (MBEDTLS_FOUND) 
-endif(POLARSSL_FOUND)
 
 if(ENABLE_GUI)
     find_package(SRSGUI)
@@ -147,6 +132,13 @@ link_directories(
     ${Boost_LIBRARY_DIRS}
     ${POLAR_LIBRARY_DIRS}
     ${SRSLTE_LIBRARY_DIRS}
+)
+
+# Add headers that are now in srsLTE
+include_directories(
+    ${SRSLTE_INCLUDE_DIRS}/srslte/
+    ${SRSLTE_INCLUDE_DIRS}/../../liblte/hdr/
+    $ENV{SRSLTE_BUILDDIR}/srslte/include
 )
 
 ########################################################################
@@ -177,6 +169,5 @@ add_custom_target(add_srsUE_headers SOURCES ${HEADERS_ALL})
 ########################################################################
 # Add subdirectories
 ########################################################################
-add_subdirectory(liblte)
 add_subdirectory(ue)
 

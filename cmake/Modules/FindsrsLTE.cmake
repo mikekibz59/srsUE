@@ -18,7 +18,7 @@ FIND_PATH(
     SRSLTE_INCLUDE_DIRS
     NAMES   srslte/srslte.h
     HINTS   $ENV{SRSLTE_DIR}/include
-            ${SRSLTE_SRCDIR}/srslte/include
+            $ENV{SRSLTE_SRCDIR}/srslte/include
             ${PC_SRSLTE_INCLUDEDIR}
             ${CMAKE_INSTALL_PREFIX}/include
     PATHS   /usr/local/include 
@@ -26,10 +26,10 @@ FIND_PATH(
 )
 
 FIND_LIBRARY(
-    SRSLTE_LIBRARY
-    NAMES   srslte
-    HINTS   $ENV{SRSLTE_DIR}/lib
-            ${SRSLTE_BUILDDIR}/srslte/lib
+    SRSLTE_PHY_LIBRARY
+    NAMES   srslte_phy
+    HINTS   $ENV{SRSLTE_DIR}/lib/phy
+            $ENV{SRSLTE_BUILDDIR}/srslte/lib/phy
             ${PC_SRSLTE_LIBDIR}
             ${CMAKE_INSTALL_PREFIX}/lib
             ${CMAKE_INSTALL_PREFIX}/lib64
@@ -39,12 +39,39 @@ FIND_LIBRARY(
             /usr/lib64
 )
 
+FIND_LIBRARY(
+    SRSLTE_COMMON_LIBRARY
+    NAMES   srslte_common
+    HINTS   $ENV{SRSLTE_DIR}/lib/common
+            $ENV{SRSLTE_BUILDDIR}/srslte/lib/common
+            ${PC_SRSLTE_LIBDIR}
+            ${CMAKE_INSTALL_PREFIX}/lib
+            ${CMAKE_INSTALL_PREFIX}/lib64
+    PATHS   /usr/local/lib
+            /usr/local/lib64
+            /usr/lib
+            /usr/lib64
+)
+
+FIND_LIBRARY(
+    SRSLTE_UPPER_LIBRARY
+    NAMES   srslte_upper
+    HINTS   $ENV{SRSLTE_DIR}/lib/upper
+            $ENV{SRSLTE_BUILDDIR}/srslte/lib/upper
+            ${PC_SRSLTE_LIBDIR}
+            ${CMAKE_INSTALL_PREFIX}/lib
+            ${CMAKE_INSTALL_PREFIX}/lib64
+    PATHS   /usr/local/lib
+            /usr/local/lib64
+            /usr/lib
+            /usr/lib64
+)
 
 FIND_LIBRARY(
     SRSLTE_RF_LIBRARY
     NAMES   srslte_rf
-    HINTS   $ENV{SRSLTE_DIR}/lib
-            ${SRSLTE_BUILDDIR}/srslte/lib/rf
+    HINTS   $ENV{SRSLTE_DIR}/lib/phy/rf
+            $ENV{SRSLTE_BUILDDIR}/srslte/lib/phy/rf
             ${PC_SRSLTE_LIBDIR}
             ${CMAKE_INSTALL_PREFIX}/lib
             ${CMAKE_INSTALL_PREFIX}/lib64
@@ -53,6 +80,21 @@ FIND_LIBRARY(
             /usr/lib
             /usr/lib64
 )
+
+FIND_LIBRARY(
+    SRSLTE_RADIO_LIBRARY
+    NAMES   srslte_radio
+    HINTS   $ENV{SRSLTE_DIR}/lib/radio
+            $ENV{SRSLTE_BUILDDIR}/srslte/lib/radio
+            ${PC_SRSLTE_LIBDIR}
+            ${CMAKE_INSTALL_PREFIX}/lib
+            ${CMAKE_INSTALL_PREFIX}/lib64
+    PATHS   /usr/local/lib
+            /usr/local/lib64
+            /usr/lib
+            /usr/lib64
+)
+
 IF(DEFINED SRSLTE_SRCDIR) 
     set(SRSLTE_INCLUDE_DIRS ${SRSLTE_SRCDIR}/srslte/include 
                             ${SRSLTE_SRCDIR}/cuhd/include 
@@ -65,7 +107,7 @@ IF(DEFINED SRSLTE_BUILDDIR)
                             ${SRSLTE_BUILDDIR}/srslte/include/)
 ENDIF(DEFINED SRSLTE_BUILDDIR)
 
-SET(SRSLTE_LIBRARIES ${SRSLTE_LIBRARY} ${SRSLTE_RF_LIBRARY})
+SET(SRSLTE_LIBRARIES ${SRSLTE_PHY_LIBRARY} ${SRSLTE_COMMON_LIBRARY} ${SRSLTE_RF_LIBRARY} ${SRSLTE_UPPER_LIBRARY} ${SRSLTE_RADIO_LIBRARY})
 
 message(STATUS "SRSLTE LIBRARIES: " ${SRSLTE_LIBRARIES})
 message(STATUS "SRSLTE INCLUDE DIRS: " ${SRSLTE_INCLUDE_DIRS})
@@ -73,4 +115,3 @@ message(STATUS "SRSLTE INCLUDE DIRS: " ${SRSLTE_INCLUDE_DIRS})
 INCLUDE(FindPackageHandleStandardArgs)
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(SRSLTE DEFAULT_MSG SRSLTE_LIBRARIES SRSLTE_INCLUDE_DIRS)
 MARK_AS_ADVANCED(SRSLTE_LIBRARIES SRSLTE_INCLUDE_DIRS)
-
