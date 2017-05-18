@@ -26,7 +26,7 @@
 
 #include <unistd.h>
 
-#include "srslte/utils/debug.h"
+#include "srslte/phy/utils/debug.h"
 #include "phy/phy.h"
 #include "common/log_stdout.h"
 #include "common/mac_interface.h"
