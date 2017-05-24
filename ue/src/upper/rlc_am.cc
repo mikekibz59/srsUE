@@ -210,12 +210,14 @@ uint32_t rlc_am::get_total_buffer_state()
   }
 
   // Bytes needed for tx SDUs
-  n_sdus  = tx_sdu_queue.size();
-  n_bytes += tx_sdu_queue.size_bytes();
-  if(tx_sdu)
-  {
-    n_sdus++;
-    n_bytes += tx_sdu->N_bytes;
+  if(tx_window.size() < RLC_AM_WINDOW_SIZE) {
+    n_sdus  = tx_sdu_queue.size();
+    n_bytes += tx_sdu_queue.size_bytes();
+    if(tx_sdu)
+    {
+      n_sdus++;
+      n_bytes += tx_sdu->N_bytes;
+    }
   }
 
   // Room needed for header extensions? (integer rounding)
