@@ -139,7 +139,7 @@ bool demux::process_pdus()
   return pdus.process_pdus();
 }
 
-void demux::process_pdu(uint8_t *mac_pdu, uint32_t nof_bytes)
+void demux::process_pdu(uint8_t *mac_pdu, uint32_t nof_bytes, uint32_t tstamp)
 {
   // Unpack DLSCH MAC PDU 
   mac_msg.init_rx(nof_bytes);

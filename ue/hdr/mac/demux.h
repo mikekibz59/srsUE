@@ -56,7 +56,7 @@ public:
   void     set_uecrid_callback(bool (*callback)(void*, uint64_t), void *arg);
   bool     get_uecrid_successful();
   
-  void     process_pdu(uint8_t *pdu, uint32_t nof_bytes);
+  void     process_pdu(uint8_t *pdu, uint32_t nof_bytes, uint32_t tstamp);
   
 private:
   const static int NOF_HARQ_PID    = 8; 
